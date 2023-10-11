@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Red+Rose:wght@500&family=Rubik:wght@400;500;600&display=swap');
+
+*{
+    box-sizing: border-box;
+    margin: 0 auto;
+    font-size: 20px;
+    font-family: 'Red Rose', cursive;
+    font-family: 'Rubik', sans-serif;
+}
+
+body{
+    padding: 4rem;
+}
+
+#myForm{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#codeLbl{
+    font-size: 2.4rem;
+}
+
+#codeInput{
+    border-color: #2e292933;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: antiquewhite;
+}
+
+#codeSubmit{
+    border-color: #2e292933;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: antiquewhite;
+}
+
+#codeSubmit:hover{
+    cursor: pointer;
+}
+
+#resultsContainer{
+    opacity: 0;
+    width: 800px;
+    padding: 2rem;
+    border-radius: 12px;
+    border: 2px antiquewhite solid;
+    background-color: antiquewhite;
+    display: flex;
+    flex-direction: column;
+    margin-top: 50px;
+    gap: 20px;
+    text-align: left;
+}
+
+#jeepCode{
+    font-size: 1.6rem;
+    font-weight: 600;
+}

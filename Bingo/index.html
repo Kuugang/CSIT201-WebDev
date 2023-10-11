@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo</title>
+    <script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400;500;700;900&display=swap');
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing: border-box;
+        }
+
+        body{
+            font-family: 'Montserrat', sans-serif;;
+        }
+
+        td{
+            width: 50px;
+            height: 50px;
+            border:1px black solid;
+            text-align: center;
+        }
+
+        th{
+            font-size: 30px;;
+        }
+        
+        td:hover{
+            cursor: pointer;
+        }
+        .non-win{
+            position: absolute;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class = "flex flex-col w-full h-screen bg-zinc-200 justify-center items-center">
+    <input class = "border-solid border-2 border-gray-300 rounded-lg p-3 mb-2" id = "gameCodeInput" type="text" placeholder="Enter Game Code">
+    <button class = "border-solid border-2 border-gray-300 p-3 rounded-lg bg-white mb-2 hover:bg-sky-500" id = "viewDashBoardBtn">View Dashboard</button>
+    <h1 class = "text-3xl mb-2" id = "codeTxt">Game Code: </h1>
+    <div class="cardContainer border-solid border-2 border-neutral-200 p-4 rounded-xl bg-neutral-100">
+        <table class = "card">
+            <tr>
+                <th>B</th>
+                <th>I</th>
+                <th>N</th>
+                <th>G</th>
+                <th>O</th>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table> 
+    </div>
+    <div class="controls mt-3">
+        <button class = "border-solid border-2 border-gray-300 p-3 rounded-lg bg-white hover:bg-sky-500" id = "getCardBtn">Get Card</button>
+        <button class = "border-solid border-2 border-gray-300 rounded-lg bg-white p-3 hover:bg-sky-500" id = "checkCardBtn">Check Card</button>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            let code;
+            let card = []
+            let token;
+            var cells = document.querySelectorAll('.card td');
+
+            $("#gameCodeInput").on("change", function(){
+                code = $("#gameCodeInput").val()
+                $("#codeTxt").html("Game Code: " + code);
+            })
+
+            $('#viewDashBoardBtn').click(function(e){
+                e.preventDefault();
+                window.open(`http://www.hyeumine.com/bingodashboard.php?bcode=${code}`, "_blank");
+            })
+
+            $("#getCardBtn").bind('click', function(){
+                $.ajax({
+                    url:`http://www.hyeumine.com/getcard.php?bcode=${code}`,
+                    method:"GET",
+                    error: function(xhr, status, error){
+                        alert("Error!" + xhr.status);
+                    },
+                    success: (data) =>{
+                        state = 1;
+                        data = JSON.parse(data);
+                        token = data.playcard_token;
+                        var index = 0;
+                        try{
+                            card = [
+                                data.card.B,
+                                data.card.I,
+                                data.card.N,
+                                data.card.G,
+                                data.card.O
+                            ]
+                            for (var i = 0; i < 5; i++) {
+                                for(var j = 0; j < 5; j++){
+                                    cells[index].innerHTML = card[j][i]; 
+                                    index++;
+                                }
+                            }
+                        }catch(e){
+                            const overlay = $('<div class="overlay" id="overlay"></div>');
+                            overlay.click(function(event) {
+                                if (event.target === this) {
+                                    overlay.remove(); 
+                                }
+                            }); 
+                            
+                            const error = $('<div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4" role="alert">');
+                            error.append('<p class="font-bold">Error!</p>');
+                            error.append('<p>Invalid Game Code.</p>');
+
+                            overlay.append(error);
+                            $("body").append(overlay);
+                        }
+                    } 
+                })
+            })
+
+            $("#checkCardBtn").bind('click', function(){
+                if(token){
+                    $.ajax({
+                        url: `http://www.hyeumine.com/checkwin.php?playcard_token=${token}`,
+                        method: 'GET',
+                        success: (data) =>{
+                            if(data == 1){
+                                const overlay = $('<div class="overlay" id="overlay"></div>');
+                                overlay.click(function(event) {
+                                    if (event.target === this) {
+                                        overlay.remove(); 
+                                    }
+                                });
+                                const win = $('<div class="win" role="alert" text-center></div>');
+                                win.append('<p class="px-4 py-3 font-bold text-purple-100 bg-emerald-500">BINGO!</p>');
+                                win.append('<p class="px-4 py-3 text-purple-800 bg-gray-100 ">Congratulations! You have a winning card!</p>');
+
+                                overlay.append(win);
+                                $("body").append(overlay);
+                            }else{
+                                const overlay = $('<div class="overlay" id="overlay"></div>');
+                                overlay.click(function(event) {
+                                    if (event.target === this) {
+                                        overlay.remove(); 
+                                    }
+                                });
+
+                                const nonWin = $('<div class="non-win" role="alert"></div>');
+                                nonWin.append('<div class="bg-red-500 text-white font-bold rounded-t px-4 py-2">Try again next time!</div>');
+                                nonWin.append('<div class="border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700"><p>Your card isn\'t a winning card</p></div>');
+
+                                overlay.append(nonWin);
+                                $("body").append(overlay);
+                            }
+                        }
+                    })
+                }else{
+                    const overlay = $('<div class="overlay" id="overlay"></div>');
+                    overlay.click(function(event) {
+                        if (event.target === this) {
+                            overlay.remove(); 
+                        }
+                    }); 
+                            
+                    const error = $('<div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4" role="alert">');
+                    error.append('<p class="font-bold">Error!</p>');
+                    error.append('<p>Game code or bingo card invalid.</p>');
+
+                    overlay.append(error);
+                    $("body").append(overlay);
+                }
+            })
+            cells.forEach(function(cell) {
+                cell.addEventListener("click", function() {
+                    if (cell.classList.contains("bg-emerald-400")) {
+                        cell.classList.remove("bg-emerald-400");
+                    } else {
+                        cell.classList.add("bg-emerald-400");
+                    }
+                });
+            });
+         })
+    </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+*{
+    padding:0;
+    margin: 0;
+}
+
+
+a{
+    text-decoration: none;
+    color:black;
+}
+
+header{
+    margin: .5rem;
+    width: 100%;
+    background: black;
+    height: 5vh;
+    display: flex;
+    align-items: center;
+}
+
+nav{
+    margin: 10px;
+}
+
+nav a{
+    font-size: 20px;
+    margin: 10px;
+    color: white;
+}
+
+main{
+    width: 600px;
+    border: 1px black solid;
+    padding: 3rem;
+    margin: 0 auto;
+}
+
+.quotes{
+    border-left:1px black solid;
+    border-right:1px black solid;
+    border-top:1px black solid;
+}
+
+.q{
+    border-bottom:1px black solid;
+}
+
+
+.quotes p{
+    border-top: 1px black solid;
+    display: none; 
+}
+
+.q1:hover p {
+    display: block;
+}
+.q2:hover p {
+    display: block;
+}
+.q3:hover p {
+    display: block;
+}

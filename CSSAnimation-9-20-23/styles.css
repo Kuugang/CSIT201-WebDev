@@ -1,0 +1,253 @@
+*{
+    padding:0;
+    margin: 0;
+}
+
+
+a{
+    text-decoration: none;
+    color:black;
+}
+
+header{
+    margin: .5rem;
+    width: 100%;
+    background: black;
+    height: 5vh;
+    display: flex;
+    align-items: center;
+
+}
+
+nav{
+    margin: 10px;
+}
+
+nav a{
+    font-size: 20px;
+    margin: 10px;
+    color: white;
+}
+
+main{
+    width: 600px;
+    border: 1px black solid;
+    padding: 3rem;
+    margin: 0 auto;
+}
+
+.content{
+    height: 50vh;
+    border:1px black solid;
+    border-top: 0px black solid;
+    position: relative;
+}
+
+.controls{
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    height: 2rem;
+    border-bottom: 1px black solid;
+}
+
+.controls div{
+    display: flex;
+    align-items: center;
+    width: 145px;
+}
+
+.control{
+    border:1px black solid;
+}
+
+.control:hover{
+    background-color: green;
+}
+
+.animation{
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    height: 93%;
+    left: 50%;
+    transform: translate(-50%);
+    display: flex;
+    justify-content: center;
+}
+
+.jump-animation {
+    position: inherit;
+    bottom: 0%;
+    left: 50%;
+    width: calc(300px/ 2);
+    height: calc(323px / 2);
+    transform: translate(-50%);
+    background-image: url('moves/jump-1.png');
+    background-repeat: no-repeat;
+    background-size: 100%;
+    animation: jump .7s ease-in-out infinite;
+    visibility: hidden;
+    border:1px red solid;
+}
+
+.left-animation {
+    position: inherit;
+    bottom: 0%;
+    left: 50%;
+    width: calc(300px / 2);
+    height: calc(323px / 2);
+    transform: translate(-50%);
+    background-image: url('moves/left-1.png');
+    background-repeat: no-repeat;
+    background-size: 100%;
+    background-position: bottom;
+    animation: leftMove .7s ease-in-out infinite;
+    visibility: hidden;
+    border:1px red solid;
+}
+
+
+.right-animation {
+    position: inherit;
+    bottom: 0%;
+    left: 50%;
+    width: calc(300px / 2);
+    height: calc(323px / 2);
+    transform: translate(-50%);
+    background-image: url('moves/right-1.png');
+    background-repeat: no-repeat;
+    background-size: 100%;
+    background-position: bottom;
+    animation: rightMove .7s ease-in-out infinite;
+    visibility: hidden;
+    border:1px red solid;
+}
+
+.duck-animation {
+    position: inherit;
+    bottom: 0%;
+    left: 50%;
+    width: calc(300px / 2);
+    height: calc(323px / 2);
+    transform: translate(-50%);
+    background-image: url('moves/dock-1.png');
+    background-repeat: no-repeat;
+    background-size: 100%;
+    background-position: bottom;
+    animation: duck .7s ease-in-out infinite;
+    visibility: hidden;
+    border:1px red solid;
+}
+.jump:hover ~ .animation .jump-animation {
+    visibility: visible; 
+    animation-play-state: running; 
+}
+
+.left:hover ~ .animation .left-animation {
+    visibility: visible;
+    animation-play-state: running; 
+}
+
+.right:hover ~ .animation .right-animation {
+    visibility: visible;
+    animation-play-state: running; 
+}
+.duck:hover ~ .animation .duck-animation {
+    visibility: visible;
+    animation-play-state: running; 
+}
+@keyframes jump{
+    14% { 
+        bottom: 0px; 
+        background-image: url('moves/jump-2.png'); 
+        width: calc(308px / 2); 
+        /* NAAY WAY NGA DLI NANI NIMO BUHATON BOT UNSAON */
+        height: calc(314px / 2);
+    }
+    28% { 
+        bottom: 0px;
+        background-image: url('moves/jump-3.png'); 
+        width: calc(300px / 2);
+        height: calc(301px / 2);
+    }
+    56% { 
+        bottom: 50px; 
+        background-image: url('moves/jump-4.png'); 
+        width: calc(256px / 2);
+        height: calc(356px / 2);
+    }
+    70% { 
+        bottom: 60px;  
+        background-image: url('moves/jump-5.png'); 
+        width: calc(256px / 2);
+        height: calc(356px / 2);
+    }
+    84% { 
+        bottom: 40px; 
+        background-image: url('moves/jump-6.png'); 
+        width: calc(308px / 2);
+        height: calc(314px / 2);
+    }
+    98% { 
+        bottom: 0px;  
+        background-image: url('moves/jump-7.png'); 
+        width: calc(300px / 2);
+        height: calc(301px / 2);
+    }
+}
+
+@keyframes leftMove{
+    20%{
+        background-image: url('moves/left-2.png');
+    }
+    40%{
+        background-image: url('moves/left-3.png');
+    }
+    80%{
+        background-image: url('moves/left-4.png');
+    }
+    100%{
+        left: -10%;
+        background-image: url('moves/left-5.png');
+    }
+}
+
+@keyframes rightMove{
+    25%{
+        background-image: url('moves/right-2.png');
+    }
+    50%{
+        background-image: url('moves/right-3.png');
+    }
+    75%{
+        background-image: url('moves/right-4.png');
+    }
+    100%{
+        left: 110%;
+        background-image: url('moves/right-5.png');
+    }
+}
+
+@keyframes duck{
+    20%{
+        background-image: url('moves/dock-2.png');
+        width: calc(300px / 2);
+        height: calc(299px / 2);
+    }
+    40%{
+        background-image: url('moves/dock-3.png');
+        width: calc(300px / 2);
+        height: calc(270px / 2);
+    }
+    60%{
+        background-image: url('moves/dock-4.png');
+        width: calc(272px / 2);
+        height: calc(189px / 2);
+    }
+    80%{
+        background-image: url('moves/dock-5.png');
+        width: calc(300px / 2);
+        height: calc(270px / 2);
+    }
+}

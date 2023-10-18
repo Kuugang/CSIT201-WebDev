@@ -219,7 +219,7 @@
                         container.empty();
 
                         (data.notes).forEach(element => {
-                            $('<div class="note block min-w-[200px] min-h-[100px] max-w-[200px] break-words p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 flex flex-col justify-between"><p class="text-base font-normal text-gray-900 dark:text-gray-900">' + element[0] + '</p> <p class="text-sm font-normal text-gray-700 dark:text-gray-400">' + element[1] + '</p></div>').prependTo(container);
+                            $('<div class="note block min-w-[200px] min-h-[100px] max-w-[200px] break-words p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 flex flex-col justify-between"><p class="text-base font-normal text-gray-900">' + element[0] + '</p> <p class="text-sm font-normal text-gray-700">' + element[1] + '</p></div>').prependTo(container);
                         });
                     }
                 })

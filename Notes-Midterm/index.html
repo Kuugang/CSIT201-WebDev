@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App</title>
+    <script
+			  src="https://code.jquery.com/jquery-3.7.1.js"
+			  integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+			  crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+	<style>
+        *{
+            margin: 0 auto;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* .content{
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            padding: 5rem
+        } */
+
+       
+
+    </style>
+</head>
+<body class = "p-8">
+    <div class="content flex flex-col justify-center items-center h-[70vh]">
+        <h1 class = "mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl text-center">Notes App</h1>
+
+        <form class = "register bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" action="">
+            <label 
+                class = "block text-gray-700 text-sm font-bold mb-2" 
+                for="firstName" 
+                id = "">
+                First Name
+            </label>
+            
+            <input 
+                class = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                type="text" 
+                id = "firstName"
+                placeholder="Enter name"
+            >
+            
+            <label 
+                class = "block text-gray-700 text-sm font-bold mb-2" 
+                for="lastName" 
+                id = "">
+                Last Name
+            </label>
+
+            <input 
+                class = "mb-6 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                type="text" 
+                id = "lastName" 
+                placeholder="Enter last name"
+            >
+ 
+            <button 
+                class = "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Register
+            </button>
+
+        </form>
+        
+        <div class="mainContent flex flex-col justify-center items-center hidden">
+            <h2 id = "currentUser" class = "mb-6 text-lg font-normal lg:text-xl sm:px-16 xl:px-48">Current User: </h2>
+            <div class = "mb-6 flex justify-center items-center"> 
+                <button 
+                    class = "signOut bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" 
+                    >
+                    Sign Out
+                </button>
+            </div>
+        
+            <form 
+                action="" 
+                class = "createNote">
+
+                <label 
+                    class = "block mb-2 text-2xl font-medium text-gray-900" 
+                    for="">
+                    Add Note
+                </label>
+                <textarea 
+                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 mb-6" 
+                    name="" 
+                    id="note" 
+                    cols="70" 
+                    rows="4" 
+                    id="note"
+                    placeholder="Enter note"
+                ></textarea>
+
+                <button 
+                    class = "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Submit
+                </button>
+            </form>
+        </div>
+    </div>
+    
+
+    <div class = "myNotes grid grid-cols-6 sm:grid-cols-auto gap-4">
+            
+    </div>
+    
+    <script>
+        $(document).ready(function(){
+            let id; 
+            let loggedIn = false;
+
+            if (localStorage.id) {
+                id = localStorage.id;
+                loggedIn = true;
+                checkUser()
+                getNotes()
+            }
+
+            function checkUser(){
+                if(loggedIn == true){
+                $(".mainContent").css("display", "initial")
+                $(".register").css("display", "none")
+                $("#currentUser").html("Current User: " + id);
+                
+                $(".signOut").bind("click", function(){
+                    localStorage.removeItem("id"); 
+                    location.reload();
+                })
+                }
+            }
+
+            function noUserError(){
+                const overlay = $('<div class="overlay" id="overlay"></div>');
+
+                    overlay.click(function(event) {
+                        if (event.target === this) {
+                            overlay.remove(); 
+                        }
+                    }); 
+
+                    const error = $('<div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4" role="alert">');
+
+                    error.append('<p class="font-bold">Error!</p>');
+                    error.append('<p>You need to Register!</p>');
+
+                    overlay.append(error);
+
+                    $("body").append(overlay);
+            }
+
+            $(".register").on("submit", function(event) {
+                event.preventDefault();
+                
+                var firstName = $("#firstName").val();
+                var lastName = $("#lastName").val();
+                console.log("asd")
+                $.ajax({
+                    type: "POST",
+                    url: "http://hyeumine.com/newuser.php",
+                    data: {
+                        firstname: firstName,
+                        lastname: lastName,
+                    },
+                    success: (data) => {
+                        data = JSON.parse(data);
+                        id = data.id; 
+                        console.log(id);
+                        localStorage.setItem("id", id);
+                        loggedIn = true
+                        checkUser()
+                    },
+                });
+            });
+
+            $(".createNote").on("submit", function(event) {
+                event.preventDefault();
+                
+                var note = $("#note").val();
+                if(!id){
+                    noUserError();
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: "http://hyeumine.com/newnote.php",
+                    data: {
+                        id: id,
+                        note: note,
+                    },
+                    success: (data) => {
+                        console.log("success");
+                        getNotes();
+                    },
+                });
+            });
+
+            $("#getNotes").click(function(e){
+                e.preventDefault();
+                if(!id){
+                    noUserError();
+                }
+                getNotes();
+            })
+
+            function getNotes(){
+                let container = $(".myNotes");
+                $.ajax({
+                    type: "GET",
+                    url: "http://hyeumine.com/mynotes.php",
+                    data: {
+                        id: id,
+                    },
+                    success: (data) => {
+                        data = JSON.parse(data);
+
+                        container.empty();
+
+                        (data.notes).forEach(element => {
+                            $('<div class="note block min-w-[200px] min-h-[100px] max-w-[200px] break-words p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 flex flex-col justify-between"><p class="text-base font-normal text-gray-900 dark:text-gray-900">' + element[0] + '</p> <p class="text-sm font-normal text-gray-700 dark:text-gray-400">' + element[1] + '</p></div>').prependTo(container);
+                        });
+                    }
+                })
+            }
+        })
+    </script>
+</body>
+</html>

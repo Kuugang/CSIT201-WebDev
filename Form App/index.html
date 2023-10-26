@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum App</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      ::-webkit-scrollbar {
+          width: 16px;
+          height: 16px;
+        }
+
+        ::-webkit-scrollbar-track {
+          border-radius: 100vh;
+          background: #edf2f7;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background: #cbd5e0;
+          border-radius: 100vh;
+          border: 3px solid #edf2f7;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay hidden"></div>
+    <header class = "fixed top-0 w-full z-20 flex items-center justify-between border-b border-red-500 p-4 bg-zinc-50 border-b-blue-100 shadow-md">
+        <a class = "text-xl font-semibold" href="/">Forum App</a>
+        <div>
+            <h1 class = "hidden block text-lg font-semibold" id = "currentUser">Hello: </h1>
+        </div>
+        <div class = "flex items-center gap-3">
+            <button class = "hidden py-2 px-4 text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 ml-auto" id = "createPostBtn">Create Post</button>
+            <button class = "hidden py-2 px-4 text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 ml-auto" id = "signOutBtn">Sign Out</button>
+            <button class = "hidden py-2 px-4 text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 gap-3" id = "loginBtn">Login</button>
+            <button class = "hidden py-2 px-4 text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 gap-3" id = "registerBtn">Register</button>
+        </div>
+    </header>
+    <form class = "createPostContainer hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 z-30 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-1/2" action="" id = "newPost">
+        <label class = "mt-5 block text-3xl font-medium text-gray-900" for="message">Got something to share? </label>
+        <textarea class="mt-5 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 mb-6 min-h-[100px] max-h-[200px] resize-y" id = "message" placeholder="ex... Kanang gi reject ka niya pero wa ka nasakitan nya wa pa gihapon ka naka move on hantod ron"></textarea>
+        <button class = "py-2 px-4 text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 float-right">Submit</button>
+    </form>
+
+    <form class = "registerContainer hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 z-30 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" id = "register">
+        <label class = "block text-black text-4xl font-bold mb-2" for="firstName">Register</label>
+        <label class = "block text-gray-700 text-sm font-bold mb-2" for="firstName">Enter fist name: </label>
+        <input class = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" id = "registerFirstName">
+
+        <label class = "block text-gray-700 text-sm font-bold mb-2" for="lastName">Enter last name: </label>
+        <input class = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" id = "registerLastName">
+
+        <label class = "block text-gray-700 text-sm font-bold mb-2" for="username">Enter username: </label>
+        <input class = "mb-4  appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" id = "registerUserName">
+
+        <button class = "py-2 px-4 text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 float-right">Register</button>
+    </form> 
+
+    <form action="" class = "loginContainer hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 z-30 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" id = "login">
+        <label class = "block text-black text-4xl font-bold mb-2" for="firstName">Login</label>
+        <label class = "block text-gray-700 text-sm font-bold mb-2" for="username">Enter username: </label>
+        <input class = "mb-4 appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" id = "loginUserName" val = "">
+        <button class = "py-2 px-4 text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 float-right">Login</button>
+    </form> 
+
+    <div id="posts-container" class = "mt-20 p-6 flex-[2] flex-col overflow-x -hidden justify-center h-full md:columns-2 columns-1 lg:columns-3 overflow-y-auto"></div>
+    <script id="post-template" type="text/x-handlebars-template">
+        {{#each data}}
+        {{#if post}}
+        <div class="post-item shadow-md border rounded border-gray-200 mb-2 px-5 pb-5 pt-3 bg-zinc-50 hover:scale-105 transition break-words" id="{{id}}">
+            {{#if user}}
+                <h2 class = "text-2xl font-bold">{{user}}</h2>
+            {{else}}
+                <h2 class = "text-2xl italic font-bold">Anon</h2>
+            {{/if}}
+            <p class = "text-xs mb-2">{{date}}</p>
+            <p class = "text-base">{{post}}</p>
+        </div>
+        {{/if}}
+        {{/each}}
+    </script>
+
+    <script>
+        let posts
+        function getPosts(page) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    type: "GET",
+                    url: "http://hyeumine.com/forumGetPosts.php",
+                    data: {
+                        // page: page
+                    },
+                    success: (data) => {
+                        let postData = JSON.parse(data).reverse();
+                        posts  = postData
+                        resolve(posts);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        console.error("An error occurred:", thrownError);
+                        reject(thrownError);
+                    }
+                });
+            });
+        }
+
+        function renderData(posts) {
+            const source = document.getElementById("post-template").innerHTML;
+            const template = Handlebars.compile(source);
+            const context = { data: posts };
+            const html = template(context);
+            document.getElementById("posts-container").innerHTML = html;
+        }
+
+    $('document').ready( function(){
+        let id;
+        let username;
+        checkUser()
+
+        if (localStorage.id) {
+            id = localStorage.id;
+            username = localStorage.username
+            checkUser()
+        }
+
+        function checkUser(){
+            if(id){
+                $("#registerBtn, #loginBtn").hide();
+                $("#signOutBtn").show();
+                $("#createPostBtn").show();
+                $("#currentUser").text("Hello: " + username).show();
+            }else{
+                $("#registerBtn, #loginBtn").show();
+                $("#signOutBtn").hide();
+                $("#createPostBtn").hide();
+                $("#currentUser").hide();
+            }
+        }
+        getPosts(1)
+            .then((posts) => {
+                renderData(posts);
+            })
+            .catch((error) => {
+                console.error("Error getting posts:", error);
+            });
+
+        $("#register").on("submit", function(e) {
+            e.preventDefault();
+            const registerLastName = $("#registerLastName").val();
+            const registerFirstName = $("#registerFirstName").val();
+            const registerUserName = $("#registerUserName").val()
+            $.ajax({
+                type: "POST",
+                url: "http://hyeumine.com/forumCreateUser.php",
+                data: {
+                    lastName : registerLastName,
+                    firstName : registerFirstName,
+                    username: registerUserName 
+                },
+                success: (data) => {
+                    data = JSON.parse(data);
+                    console.log(data)
+                    id = data.id
+                    username = data.username
+                    localStorage.setItem("id", id);
+                    localStorage.setItem("username", username);
+                    checkUser();
+                }
+            })
+            closeForms();
+        })
+
+        $("#login").on("submit", function(e){
+            e.preventDefault();
+
+            const loginUsername = $("#loginUserName").val();
+            $.ajax({
+                type : "POST",
+                url: "http://hyeumine.com/forumLogin.php",
+                data : {
+                    username: loginUsername,
+                },
+                success: (data) => {
+                    try{
+                        data = JSON.parse(data)
+                        console.log(data)
+                        id = data.user.id;
+                        username = loginUsername
+                        localStorage.setItem("id", id);
+                        localStorage.setItem("username", username);
+                        checkUser()
+                    }catch{
+                        noUserError();
+                    }
+                },
+            })
+            closeForms();
+        })
+
+        $("#signOutBtn").bind("click", function(){
+            localStorage.removeItem("id")
+            localStorage.removeItem("username")
+            location.reload();
+        })
+
+        $("#newPost").on("submit", function(e){
+            e.preventDefault();
+            const message = $("#message").val();
+            $.ajax({
+                type: "POST",
+                url: "http://hyeumine.com/forumNewPost.php",
+                data: {
+                    post: message,
+                    id: id,
+                },
+                success: (data) => {
+                    posts = getPosts(1)
+                        .then((posts) => {
+                            renderData(posts);
+                        })
+                        .catch((error) => {
+                            console.error("Error getting posts:", error);
+                        });
+                }
+            })
+            closeForms()
+        })
+
+            // $.ajax({
+            //     type: "POST",
+            //     url: "http://hyeumine.com/forumReplyPost.php",
+            //     data: {
+            //         user_id: 25 ,
+            //         post_id: 2050,
+            //         text: "BOOOOM"
+            //     }
+            // })
+
+
+        function createNewPost(postData) {
+            const postHTML = `
+                <div class="shadow-md border rounded border-gray-200 mb-2 px-5 pb-5 pt-3 bg-zinc-50 hover:scale-105 transition break-words" id="${postData.id}">
+                    <h2 class="text-2xl font-bold">${postData.user}</h2>
+                    <p class="text-xs mb-2">${postData.date}</p>
+                    <p class="text-base">${postData.post}</p>
+                </div>
+            `;
+            return postHTML;
+        }
+
+        function openForm($form) {
+            $form.show(100);
+            $(".overlay").removeClass("hidden");
+        }
+
+        function closeForms() {
+            $(".registerContainer, .loginContainer, .createPostContainer").hide();
+            $(".overlay").addClass("hidden");
+        }
+
+        $("#registerBtn").on("click", function () {
+            openForm($(".registerContainer"));
+            $("#registerBtn, #loginBtn").prop("disabled", true);
+        });
+
+        $("#loginBtn").on("click", function () {
+            openForm($(".loginContainer"));
+            $("#registerBtn, #loginBtn").prop("disabled", true);
+        });
+
+        $("#createPostBtn").on("click", function () {
+            openForm($(".createPostContainer"));
+            $("#signOutBtn").prop("disabled", true);
+        });
+        
+        $(".overlay").on("click", function (event) {
+            if ($(event.target).hasClass("overlay")) {
+                closeForms();
+                $("#registerBtn, #loginBtn, #signOutBtn").prop("disabled", false);
+            }
+        });
+
+        function noUserError() {
+            const overlay = $('<div class="overlay" id="overlay"></div>');
+
+            overlay.click(function (event) {
+              if (event.target === this) {
+                  $("#registerBtn, #loginBtn, #signOutBtn").prop("disabled", false);
+                overlay.remove()
+                closeForms();
+              }
+            });
+
+            const error = $(
+              '<div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4" role="alert">'
+            );
+
+            error.append('<p class="font-bold">Error!</p>');
+            error.append("<p>Invalid User Credentials!</p>");
+
+            overlay.append(error);
+
+            $("body").append(overlay);
+        }
+
+
+
+        $('#posts-container').on('click', '.post-item', function() {
+             
+            
+            const id = $(this).attr('id');
+
+            let item = posts.find(item => item.id === id)
+            
+            console.log(item)
+
+            const focusedPostTemplate = createFocusedPostTemplate(item);
+
+            const $overlay = $('<div class="overlay"></div>');
+            $overlay.append(focusedPostTemplate);
+
+            $('body').append($overlay);
+
+            $overlay.show();
+
+            $overlay.click(function (event) {
+                if (event.target === this) {
+                   $overlay.remove()
+                }
+        });
+
+        function createFocusedPostTemplate(post) {
+    const isReply = post.reply && post.reply.length > 0;
+    const postId = isReply ? post.reply[0].id : post.id;
+
+    let focusedPostHTML = `
+        <div class="bg-slate-100 text-sm fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white shadow-md rounded z-30 bg-white shadow-md rounded p-8 w-3/4 break-words">
+            <div class = "p-2 border rounded border-slate-100 bg-white relative">
+                <h2 class="text-2xl font-bold">${post.user}</h2>
+                <p class="text-xs mb-2">${post.date}</p>
+                <p class="text-base">${post.post}</p>
+                <button onClick="deletePost(${post.id})" class="text-2xl float-right absolute top-3 right-5 hover:text-red-600 hover:scale-105 transition">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        `;
+
+focusedPostHTML += `<label class = "mt-2 block text-xs font-medium text-gray-900" for="message">Comment as ${username}</label>`
+focusedPostHTML += '<textarea class="mt-2 block text-xs p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 min-h-[50px] max-h-[100px] resize-y" id = "message" placeholder="ex... batia pods imong post oi"></textarea>'
+focusedPostHTML += '<button class = "mt-2 py-2 px-4 text-xs text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 ml-auto" id = "createPostBtn">Reply to post</button>'
+        if (isReply) {
+    let replyHTML = `
+        <h3 class="text-base mt-2 mb-2">Replies:</h3>
+        <div class="max-h-52 overflow-y-auto">
+    `;
+
+    post.reply.forEach(reply => {
+        replyHTML += `
+            <div class="mb-5 border-b border-black break-words">
+                <h2 class="text-2xl font-bold ${!reply.user ? 'italic' : ''}">${reply.user ? reply.user : 'Anon'}</h2>
+                <p class="text-xs mb-2">${reply.date}</p>
+                <p class="text-base">${reply.reply}</p>
+            </div>
+        `;
+    });
+
+    replyHTML += `</div>`; 
+
+    focusedPostHTML += replyHTML;
+}
+
+        
+
+        focusedPostHTML += '</div>'; 
+
+        return focusedPostHTML;
+    }
+
+
+        
+    });
+    
+    function deletePost(id){
+        $.ajax({
+            type: "GET",
+            url: "http://hyeumine.com/forumDeletePost.php",
+            data : {
+                id : parseInt(id)
+            },
+            success : (data) => {
+                getPosts(1)
+                    .then((posts) => {
+                        $(".overlay").remove()
+                        renderData(posts);
+                    })
+                    .catch((error) => {
+                        console.error("Error getting posts:", error);
+                    });
+            },
+        })
+    }
+    });
+    </script>
+     <!-- <script src = "nav.js" defer></script> -->
+</body>
+</html>

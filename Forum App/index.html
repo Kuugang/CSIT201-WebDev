@@ -130,8 +130,36 @@
             const context = { data: posts };
             const html = template(context);
             document.getElementById("posts-container").innerHTML = html;
+            closeForms()
+        }
+        function openForm($form) {
+            $form.show(100);
+            $(".overlay").removeClass("hidden");
         }
 
+        function closeForms() {
+            $(".registerContainer, .loginContainer, .createPostContainer").hide();
+            $(".overlay").addClass("hidden");
+        }
+        function deletePost(id){
+            $.ajax({
+                type: "GET",
+                url: "http://hyeumine.com/forumDeletePost.php",
+                data : {
+                    id : parseInt(id)
+                },
+                success : (data) => {
+                    getPosts(1)
+                        .then((posts) => {
+                            $(".overlay").remove()
+                            renderData(posts);
+                        })
+                        .catch((error) => {
+                            console.error("Error getting posts:", error);
+                        });
+            },
+        })
+    }
     $('document').ready( function(){
         let id;
         let username;
@@ -203,7 +231,6 @@
                 success: (data) => {
                     try{
                         data = JSON.parse(data)
-                        console.log(data)
                         id = data.user.id;
                         username = loginUsername
                         localStorage.setItem("id", id);
@@ -223,28 +250,29 @@
             location.reload();
         })
 
-        $("#newPost").on("submit", function(e){
+        $("#newPost").on("submit", function(e) {
             e.preventDefault();
             const message = $("#message").val();
-            $.ajax({
-                type: "POST",
-                url: "http://hyeumine.com/forumNewPost.php",
-                data: {
-                    post: message,
-                    id: id,
-                },
-                success: (data) => {
-                    posts = getPosts(1)
-                        .then((posts) => {
-                            renderData(posts);
-                        })
-                        .catch((error) => {
-                            console.error("Error getting posts:", error);
-                        });
+
+            (async () => { 
+                try {
+                    const data = await $.ajax({ 
+                        type: "POST",
+                        url: "http://hyeumine.com/forumNewPost.php",
+                        data: {
+                            post: message,
+                            id: id,
+                        },
+                    });
+                    const posts = await getPosts(1);
+                    renderData(posts);
+                    $("#message").val('');
+                } catch (error) {
+                    console.error("Error:", error);
                 }
-            })
-            closeForms()
-        })
+            })();
+        });
+
 
             // $.ajax({
             //     type: "POST",
@@ -266,16 +294,6 @@
                 </div>
             `;
             return postHTML;
-        }
-
-        function openForm($form) {
-            $form.show(100);
-            $(".overlay").removeClass("hidden");
-        }
-
-        function closeForms() {
-            $(".registerContainer, .loginContainer, .createPostContainer").hide();
-            $(".overlay").addClass("hidden");
         }
 
         $("#registerBtn").on("click", function () {
@@ -323,26 +341,14 @@
             $("body").append(overlay);
         }
 
-
-
         $('#posts-container').on('click', '.post-item', function() {
-             
-            
             const id = $(this).attr('id');
-
             let item = posts.find(item => item.id === id)
-            
-            console.log(item)
-
             const focusedPostTemplate = createFocusedPostTemplate(item);
-
             const $overlay = $('<div class="overlay"></div>');
             $overlay.append(focusedPostTemplate);
-
             $('body').append($overlay);
-
             $overlay.show();
-
             $overlay.click(function (event) {
                 if (event.target === this) {
                    $overlay.remove()
@@ -350,77 +356,53 @@
         });
 
         function createFocusedPostTemplate(post) {
-    const isReply = post.reply && post.reply.length > 0;
-    const postId = isReply ? post.reply[0].id : post.id;
+        const isReply = post.reply && post.reply.length > 0;
+        const postId = isReply ? post.reply[0].id : post.id;
 
-    let focusedPostHTML = `
-        <div class="bg-slate-100 text-sm fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white shadow-md rounded z-30 bg-white shadow-md rounded p-8 w-3/4 break-words">
-            <div class = "p-2 border rounded border-slate-100 bg-white relative">
-                <h2 class="text-2xl font-bold">${post.user}</h2>
-                <p class="text-xs mb-2">${post.date}</p>
-                <p class="text-base">${post.post}</p>
-                <button onClick="deletePost(${post.id})" class="text-2xl float-right absolute top-3 right-5 hover:text-red-600 hover:scale-105 transition">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
-            </div>
-        `;
+        let focusedPostHTML = `
+            <div class="bg-slate-100 text-sm fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white shadow-md rounded z-30 bg-white shadow-md rounded p-8 w-3/4 break-words">
+                <div class = "p-2 border rounded border-slate-100 bg-white relative">
+                    <h2 class="text-2xl font-bold">${post.user}</h2>
+                    <p class="text-xs mb-2">${post.date}</p>
+                    <p class="text-base">${post.post}</p>
+                    <button onClick="deletePost(${post.id})" class="text-2xl float-right absolute top-3 right-5 hover:text-red-600 hover:scale-105 transition">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `;
 
-focusedPostHTML += `<label class = "mt-2 block text-xs font-medium text-gray-900" for="message">Comment as ${username}</label>`
-focusedPostHTML += '<textarea class="mt-2 block text-xs p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 min-h-[50px] max-h-[100px] resize-y" id = "message" placeholder="ex... batia pods imong post oi"></textarea>'
-focusedPostHTML += '<button class = "mt-2 py-2 px-4 text-xs text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 ml-auto" id = "createPostBtn">Reply to post</button>'
-        if (isReply) {
-    let replyHTML = `
-        <h3 class="text-base mt-2 mb-2">Replies:</h3>
-        <div class="max-h-52 overflow-y-auto">
-    `;
+            focusedPostHTML += `<label class = "mt-2 block text-xs font-medium text-gray-900" for="message">Comment as ${username}</label>`
+            focusedPostHTML += '<textarea class="mt-2 block text-xs p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 min-h-[50px] max-h-[100px] resize-y" id = "message" placeholder="ex... batia pod sa imong post oi delete ko ni ron"></textarea>'
+            focusedPostHTML += '<button class = "mt-2 py-2 px-4 text-xs text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 ml-auto" id = "createPostBtn">Reply to post</button>'
 
-    post.reply.forEach(reply => {
-        replyHTML += `
-            <div class="mb-5 border-b border-black break-words">
-                <h2 class="text-2xl font-bold ${!reply.user ? 'italic' : ''}">${reply.user ? reply.user : 'Anon'}</h2>
-                <p class="text-xs mb-2">${reply.date}</p>
-                <p class="text-base">${reply.reply}</p>
-            </div>
-        `;
-    });
+            if (isReply) {
+                let replyHTML = `
+                    <div class="border-t border-black mt-2 max-h-52 overflow-y-auto">
+                `;
 
-    replyHTML += `</div>`; 
+                post.reply.forEach(reply => {
+                    replyHTML += `
+                        <div class="p-2 text-sm mb-5 border-b border-black break-words">
+                            <h2 class="text-base font-bold ${!reply.user ? 'italic' : ''}">${reply.user ? reply.user : 'Anon'}</h2>
+                            <p class="text-xs mb-2">${reply.date}</p>
+                            <p class="text-base">${reply.reply}</p>
+                        </div>
+                    `;
+                });
 
-    focusedPostHTML += replyHTML;
-}
+                replyHTML += `</div>`; 
 
-        
+                focusedPostHTML += replyHTML;
+            }
 
-        focusedPostHTML += '</div>'; 
+            focusedPostHTML += '</div>'; 
 
-        return focusedPostHTML;
-    }
-
-
-        
+            return focusedPostHTML;
+        }
     });
     
-    function deletePost(id){
-        $.ajax({
-            type: "GET",
-            url: "http://hyeumine.com/forumDeletePost.php",
-            data : {
-                id : parseInt(id)
-            },
-            success : (data) => {
-                getPosts(1)
-                    .then((posts) => {
-                        $(".overlay").remove()
-                        renderData(posts);
-                    })
-                    .catch((error) => {
-                        console.error("Error getting posts:", error);
-                    });
-            },
-        })
-    }
+    
     });
     </script>
-     <!-- <script src = "nav.js" defer></script> -->
 </body>
 </html>

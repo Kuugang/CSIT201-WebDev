@@ -1,0 +1,13 @@
+{{#each data}}
+{{#if post}}
+<div class="post-item shadow-md border rounded border-gray-200 mb-2 px-5 pb-1 pt-3 {{# if postOwner}} bg-blue-200 {{else}} bg-zinc-50 {{/if}} hover:scale-105 cursor-pointer transition break-words " id="{{id}}">
+    <p class = "mb-3 text-base">{{post}}</p>
+    {{#if user}}
+        <h1 class = "text-xs inline">By: </h1><h1 class = "text-base font-semibold inline">{{user}}</h1>
+    {{else}}
+        <h1 class = "text-xs inline">By: </h1><h1 class = "text-base font-semibold inline-block italic">Anon</h1>
+    {{/if}}
+    <p class = "text-xs mb-2">{{date}}</p>
+</div>
+{{/if}}
+{{/each}}

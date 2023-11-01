@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forum</title>
+    <title>Catalk Forum</title>
     <link rel="icon" type="image/gif" href="https://media.tenor.com/Vy5sPxwNWxAAAAAi/sebusun-mocha.gif" />
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
@@ -39,6 +39,19 @@
         z-index: 1;
       }
 
+      @keyframes up{
+        	0%{
+        		opacity: 0;
+        	}
+        	50%{
+        		opacity: 1;
+        	}
+        	100%{
+        		opacity:0;
+        		transform: translateY(-3px);
+        	}
+        }
+
       ::-webkit-scrollbar {
           width: 16px;
           height: 16px;
@@ -62,14 +75,29 @@
     <script id = "posts" type = "text/x-handlebars-template">
         {{#each data}}
             {{#if post}}
-            <div class="post-item shadow-md border rounded border-gray-200 mb-2 px-5 pb-1 pt-3 {{# if postOwner}} bg-blue-500 {{else}}  bg-cyan-50{{/if}} hover:scale-105 cursor-pointer transition break-words overflow-hidden" id="{{id}}">
-                <p class = "mb-3 text-base">{{post}}</p>
-                {{#if user}}
-                    <h1 class = "text-xs inline">By: </h1><h1 class = "text-base font-semibold inline">{{user}}</h1>
-                {{else}}
-                    <h1 class = "text-xs inline">By: </h1><h1 class = "text-base font-semibold inline-block italic">Anon</h1>
+            <div class="post-item w-full shadow-md border rounded border-gray-200 mb-2 px-5 pb-1 pt-3 {{# if postOwner}} bg-blue-500 {{else}}  bg-cyan-50{{/if}} hover:border hover:border-black cursor-pointer transition break-words overflow-hidden" id="{{id}}">
+                <div class = "p-2 border bg-[#E3F2F1]">
+                    {{#if user}}
+                        <h1 class="font-extralight text-sm inline">Posted by:</h1>
+                        <img class="w-1/12 bg-zinc-100 border border-black rounded-full inline" {{#if postOwner}} src = "https://media.tenor.com/BEBopBnhjVEAAAAi/peach-and-goma-peach-goma.gif" {{else}} src = "https://i.pinimg.com/originals/6f/65/78/6f65784caf4dd9f9932de464788dde43.jpg"{{/if}}>
+                        <button class="userLink text-base font-medium inline underline decoration-1" id = {{uid}}>{{user}}</button>
+                        <p class="text-xs font-extralight inline">{{date}}</p>
+                    {{else}}
+                        <h1 class = "font-extralight text-sm inline">Posted by: </h1>
+                        <img class="w-1/12 bg-zinc-100 border border-black rounded-full inline" {{#if postOwner}} src = "https://media.tenor.com/BEBopBnhjVEAAAAi/peach-and-goma-peach-goma.gif" {{else}} src = "https://i.pinimg.com/originals/6f/65/78/6f65784caf4dd9f9932de464788dde43.jpg"{{/if}}>
+                        <button class = "userLink text-base font-medium inline underline italic" id = {{uid}}>Anon </button>
+                        <p class="text-xs font-extralight inline">{{date}}</p>
+                    {{/if}}
+                    <p class = "mt-3 text-base font-medium">{{post}}</p>
+                </div>
+
+                <button class="font-extralight text-sm hover:bg-gray-200 inline"> <i class="inline fa-regular fa-comments"></i> {{replyCount}} Comments</button>
+
+                {{#if (getUserState)}}
+                    <button class = "font-extralight text-sm hover:bg-gray-200"><i class="fa-regular fa-share-from-square"></i> Share </button>
+                    <button class = "font-extralight text-sm hover:bg-gray-200"><i class="fa-regular fa-bookmark"></i> Pin </button>
                 {{/if}}
-                <p class = "text-xs mb-2">{{date}}</p>
+
             </div>
             {{/if}}
         {{/each}}
@@ -99,17 +127,21 @@
     </script>
     
     <script id = "postFocus" type = "text/x-handlebars-template">
-        <div class="bg-cyan-50 text-sm fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white shadow-md rounded bg-white shadow-md rounded px-9 pr-10 pt-8 pb-8 w-3/4 max-h-[3/4] break-words z-45">
+        <div class = "text-sm bg-white shadow-md rounded bg-white shadow-md rounded px-9 pr-10 pt-8 pb-8 break-words z-45">
             <button class = "transition hover:scale-125 absolute top-3 right-4" onclick="closePostFocus()">
                 <i class="fa-solid fa-xmark text-2xl" style="color: #e60000;"></i>
             </button>
 
-            <div class="p-2 border rounded border-slate-100 bg-white relative">
+            <div class="p-2 border rounded border-slate-100 bg-white relative" id = {{data.id}}>
                 <p class="text-base mb-3">{{data.post}}</p>
                 {{#if data.user}}
-                    <span class = "inline-block font-sm">By: <h1 class = "text-base font-semibold inline-block">{{data.user}}</h1></span>
+                    <h1 class="font-extralight text-sm inline">Posted by:</h1>
+                    <img class="w-1/12 bg-zinc-100 border border-black rounded-full inline" {{#if data.postOwner}} src = "https://media.tenor.com/BEBopBnhjVEAAAAi/peach-and-goma-peach-goma.gif" {{else}} src = "https://i.pinimg.com/originals/6f/65/78/6f65784caf4dd9f9932de464788dde43.jpg"{{/if}}>
+                    <button class="userLink text-base font-medium inline underline decoration-1" id = {{data.uid}}>{{data.user}}</button>
                 {{else}}
-                    <span class = "inline-block font-sm"><h1 class = "text-base font-semibold inline-block italic">Anon</h1></span>
+                    <h1 class="font-extralight text-sm inline">Posted by:</h1>
+                    <img class="w-1/12 bg-zinc-100 border border-black rounded-full inline" {{#if data.postOwner}} src = "https://media.tenor.com/BEBopBnhjVEAAAAi/peach-and-goma-peach-goma.gif" {{else}} src = "https://i.pinimg.com/originals/6f/65/78/6f65784caf4dd9f9932de464788dde43.jpg"{{/if}}>
+                    <button class="userLink text-base font-medium inline underline decoration-1" id = {{data.uid}}>{{data.user}}</button>
                 {{/if}}
 
                 <p class="text-xs mb-2">{{data.date}}</p>
@@ -120,21 +152,25 @@
                 {{/if}}
             </div>
 
-            {{#if data.username}}
-            <label class="mt-2 block text-xs font-medium text-gray-900" for="message">Comment as {{data.username}}</label>
+            {{#if (getUserState)}}
+                <label class="mt-2 block text-xs font-medium text-gray-900" for="message">Comment as {{getUsername}}</label>
                 <textarea class="mt-2 block text-xs p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 min-h-[50px] max-h-[500px] resize-y" id="replyMessage" placeholder="ex... batia pod sa imong post oi delete ko ni ron"></textarea>
-            <button class="mt-2 py-2 px-4 text-xs text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 ml-auto" onclick="replyPost('{{data.id}}')">Comment</button>           
+                <button class="mt-2 py-2 px-4 text-xs text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 ml-auto" onclick="replyPost('{{data.id}}')">Comment</button>           
             {{/if}}
 
             {{#if data.reply}}
             <div class="relative max-h-56 overflow-y-auto mt-4">
                 {{#each data.reply}}
-                    <div class="relative p-2 text-sm mb-5 border-b border-black break-words {{#if replyOwner}} bg-blue-500 {{/if}}">
-                        <h2 class="text-base font-medium {{#unless user}}italic{{/unless}}">
-                            {{#if user}}{{user}}{{else}}Anon{{/if}}
-                        </h2>
-                        <p class="text-xs mb-2 font-extralight">{{date}}</p>
-                        <p class="text-sm font-base">{{reply}}</p>
+                    <div class="relative p-2 text-sm mb-5 border-l border-black bg-zinc-50 break-words {{#if replyOwner}} bg-blue-500 {{/if}}">
+                        <p class="text-base mb-3">{{reply}}</p>
+                        {{#if data.user}}
+                            <img class="w-1/12 bg-zinc-100 border border-black rounded-full inline" {{#if replyOwner}} src = "https://media.tenor.com/BEBopBnhjVEAAAAi/peach-and-goma-peach-goma.gif" {{else}} src = "https://i.pinimg.com/originals/6f/65/78/6f65784caf4dd9f9932de464788dde43.jpg"{{/if}}>
+                            <button class="userLink text-base font-medium inline underline decoration-1" id = {{uid}}>{{user}}</button>
+                        {{else}}
+                            <img class="w-1/12 bg-zinc-100 border border-black rounded-full inline" {{#if dreplyOwner}} src = "https://media.tenor.com/BEBopBnhjVEAAAAi/peach-and-goma-peach-goma.gif" {{else}} src = "https://i.pinimg.com/originals/6f/65/78/6f65784caf4dd9f9932de464788dde43.jpg"{{/if}}>
+                            <button class="userLink text-base font-medium inline underline decoration-1" id = {{uid}}>{{user}}</button>
+                        {{/if}}
+                        <p class="text-xs inline">{{date}}</p>
                         {{#if replyOwner}}
                             <button onclick="deletePostReply('{{id}}')" class="text-base float-right absolute top-3 right-3 hover:text-red-600 hover:scale-105 transition">
                                 <i class="fa-solid fa-trash-can"></i>
@@ -146,16 +182,51 @@
             {{/if}}
         </div>
     </script>
+
+    <script id = "userProfile" type = "text/x-handlebars-template">
+        <div class = "flex flex-row gap-4">
+            <div class = "w-96">
+                <div id = "userProfileFocusContainer" class = "max-w-md fixed left-[5%] top-[25%] postFocusContainer"></div>
+            </div>
+            <div>
+                <h1 class = "text-xl font-bold mb-4">Activity</h1>
+                <div class = "w-96">
+                    <div id = "userContentContainer" class = "posts-container flex flex-col gap-2 max-w-lg overflow-x-hidden h-full overflow-y-auto"></div> 
+                </div>
+            </div>
+            <div class = "flex flex-col">
+                <div class = "max-w-sm bg-white border border-gray-200 rounded-lg shadow px-4 py-4 relative">
+                    {{#if isMainUser}}
+                        <img class = "inline-block w-1/6 bg-zinc-100 border border-black rounded-full" src="https://media.tenor.com/BEBopBnhjVEAAAAi/peach-and-goma-peach-goma.gif" alt="">
+                    {{else}}
+                        <img class = "inline w-1/6 bg-zinc-100 border border-black rounded-full" src="https://i.pinimg.com/originals/6f/65/78/6f65784caf4dd9f9932de464788dde43.jpg" alt="">
+                    {{/if}}
+                    <h1 class = "text-lg font-bold">
+                        {{#if username}}
+                            {{username}}
+                        {{else}}
+                            <p class = "italic">Anon</p>
+                        {{/if}}
+                    </h1>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam hic quaerat nihil porro nemo, debitis officiis quas consequatur ad illum.</p>
+                    <button class="text-base float-right px-4 py-2 border rounded text-white bg-blue-500 hover:text-blue-500 hover:bg-white hover:border-blue-500 transition">Follow</button>
+                </div>
+            </div>
+        </div>
+    </script> 
+
 </head>
+
 <body class = "bg-[#E3F2F1]">
     <header class = "fixed top-0 w-full z-20 flex items-center justify-between p-4 bg-cyan-300 border-b-[#6E7291] shadow-md">
-        <a class="" href="index.html">
-            <div class="flex items-end">
+        <div class="flex items-center">
+            <div class = "flex items-end">
                 <img class = "w-1/6 h-full" src="https://media.tenor.com/lqtU1G4aaqIAAAAi/yom-dance.gif" alt="">
-                <h1 class="text-4xl font-black">Forum</h1>
+                <a class="inline" href="index.html">
+                    <h1 class="text-4xl font-black">Catalk Forum</h1>
+                </a>
             </div>
-        </a>
-        
+        </div>
         <div class = "flex items-center gap-3">
             <div class="flex flex-row items-center">
                 <div class="relative">
@@ -175,22 +246,35 @@
         </div>
     </header>
 
-    <div id="posts-container" class = "mt-20 p-6 min-h-screen overflow-x-hidden justify-center h-full md:columns-2 columns-1 lg:columns-3 overflow-y-auto"></div> 
+    <main class="flex flex-row gap-3 mt-40 justify-center items-start">
+        <div id="posts-container" class="posts-container flex flex-col gap-2 max-w-lg overflow-x-hidden h-full overflow-y-auto"></div>
+        <div class = "w-96">
+            <div id = "mainPostFocusContainer" class = "fixed max-h-64 max-w-[43%] postFocusContainer"></div>
+        </div>
+    </main>
+      
+    <button id = "backToTop" onclick = "backToTop()" class = "fixed hidden bottom-5 right-5 rounded-full bg-black text-white p-4 cursor-pointer z-10 transition-all"><i class="fa-solid fa-arrow-up" style = "animation: up 1.5s infinite;"></i> Back to top</button>
+
+    <footer>
+        <div class = "fixed max-w-[280px] flex flex-row items-end justify-center bottom-5 left-3 transform border-black border-b-[1px]">
+            <p class = "text-base font-semibold">All rights reserved | Kuugang </p>
+            <img class = "w-2/12" src="https://media.tenor.com/j_XffFNH-8gAAAAi/phone.gif" alt="">
+        </div>
+    </footer>
 
     <div id="drawer" class="fixed top-0 right-0 transform translate-x-full z-40 w-1/3 h-full transition-all duration-300 transform bg-white shadow-lg pl-4 pt-6 pb-1">
         <div class="h-full">
             <div class = "flex items-center justify-between pr-5">
                 <h2 class="text-lg font-bold">Profile</h2>
-                <button class = "text-sm">Edit Profile <i class="fa-solid fa-pencil"></i></button>
+                <button class = "text-sm" onclick = "editProfile()">Edit Profile <i class="fa-solid fa-pencil"></i></button>
             </div>
             <div class = "flex flex-col justify-center items-center gap-1">
-                <!-- <i class="fa-solid fa-circle-user text-6xl text-blue-400"></i> -->
                 <img class = "w-3/12 bg-zinc-100 border border-black rounded-full" src="https://media.tenor.com/BEBopBnhjVEAAAAi/peach-and-goma-peach-goma.gif" alt="">
                 <h1 class = "block text-lg font-semibold" id = "currentUser"></h1>
                 <p class="text-gray-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quia assumenda consequuntur excepturi, corporis optio numquam ipsum aut? Vel, dolore natus!</p>
             </div>
             <h2 class = "text-lg font-bold mt-6">My activities</h2>
-            <div id = "activity" class = "max-h-[] overflow-x-hidden overflow-y-auto h-full">
+            <div id = "activity" class = "overflow-x-hidden overflow-y-auto h-full">
             </div>
         </div>
     </div>
@@ -248,521 +332,7 @@
         <img class = "" src="https://media.tenor.com/EWB9EfXiwuEAAAAi/chill-cute.gif" alt="">
         <h1 class = "text-center text-4xl font-bold mt-4">Getting posts...</h1>
     </div>
-
-   
     <div class="overlay hidden"></div>
-
-    <script>
-        let userId;
-        let username;
-        let posts
-        
-        let postFocusTemplate;
-        let postsTemplate
-        if (localStorage.userId) {
-            userId = localStorage.userId;
-            username = localStorage.username
-            checkUser()
-        }
-
-        function checkUser(){
-            if(userId){
-                $("#registerBtn, #loginBtn").hide();
-                $("#signOutBtn").show();
-                $("#createPostBtn").show();
-                $("#sidebar-button").show();
-                $("#currentUser").text(username)
-            }else{
-                $("#registerBtn, #loginBtn").show();
-                $("#signOutBtn").hide();
-                $("#createPostBtn").hide();
-                $("#sidebar-button").hide();
-            }
-        }
-
-        $("#searchInput").on("input", function() {
-            const input = $("#searchInput");
-            const query = input.val().toLowerCase(); 
-            const filteredPosts = posts.filter(item => {
-                const postText = item.post.toLowerCase();
-                const replyText = item.reply ? item.reply.map(replyItem => replyItem.reply.toLowerCase()).join(" ") : '';
-                const authorName = item.user.toLowerCase(); 
-                const replyAuthorName = item.reply ? item.reply.map(replyItem => replyItem.user.toLowerCase()).join(" ") : '';
-                return postText.includes(query) || replyText.includes(query) || authorName.includes(query) || replyAuthorName.includes(query);
-            });
-            renderData(filteredPosts, userId)
-        });
-
-        $("#sidebar-button").on("click", function () {
-            var isChecked = $("#sidebar-checkbox").prop("checked");
-            $("#sidebar-checkbox").prop("checked", !isChecked);
-            if (!isChecked) {
-                $("#drawer").css("right", 0).css("transform", "translateX(0)");
-                renderActivity(posts) 
-                const overlay = $("<div class='sidebar-overlay z-1'></div>");
-                $("body").append(overlay);
-                overlay.click(function (event) {
-                    if (event.target == this) {
-                        $("#sidebar-checkbox").prop("checked", isChecked);
-                        $("#drawer").css("right", "-100%").css("transform", "translateX(100%)");
-                        overlay.remove();
-                    }
-                });
-            } else {
-                $("#drawer").css("right", "-100%").css("transform", "translateX(100%)");
-            }
-        });
-            
-        // $.ajax({
-        //     url: "./postFocus.hbs",
-        //     method: "GET",
-        //     dataType: "html",
-        //     success: function(templateContent){
-        //         postFocusTemplate = templateContent;                    
-        //     }
-        // })
-
-        // $.ajax({
-        //     url: "./posts.hbs",
-        //     method: "GET",
-        //     dataType: "html",
-        //     success: function(templateContent){
-        //         postsTemplate = templateContent;                    
-        //     }
-        // })
-
-        function getPosts(page) {
-            return new Promise((resolve, reject) => {
-                $("#sidebar-button").prop("disabled", true)
-                $.ajax({
-                    type: "GET",
-                    url: "http://hyeumine.com/forumGetPosts.php",
-                    success: (data) => {
-                        let postData = JSON.parse(data).reverse();
-                        posts  = postData
-                        $("#sidebar-button").prop("disabled", false)
-                        resolve(posts);
-                    },
-                    error: function (xhr, ajaxOptions, thrownError) {
-                        console.error("An error occurred:", thrownError);
-                        reject(thrownError);
-                    }
-                });
-            });
-        }
-
-        function renderData(posts, userNameId) {
-            posts.forEach(post => {
-                if(userNameId == post.uid){
-                    post.postOwner = true;
-                }
-            });
-            const postsTemplate = $("#posts").html();
-            const template = Handlebars.compile(postsTemplate);
-            const context = { data: posts };
-            const html = template(context);
-            document.getElementById("posts-container").innerHTML = html;
-            closeForms()
-        }
-
-        function renderActivity(posts) {
-            const activity = posts.filter(item => {
-                const id = item.uid;
-                const replyText = item.reply ? item.reply.map(replyItem => replyItem.uid) : [];
-
-                return id ===  userId|| replyText.includes(userId);
-            });
-            const template = Handlebars.compile($("#activities").html());
-            const content = { data : activity };
-            const html = template(content);
-            document.getElementById("activity").innerHTML = html;
-        }
-
-        function createFocusedPostTemplate(item, usernameId) {
-            item.uid == usernameId ? item.postOwner = true : item.postOwner = false
-            usernameId == undefined ? item.username = null: item.username = username;
-
-            const template = Handlebars.compile($("#postFocus").html())
-            const context = { data: item };
-            const html = template(context);
-            document.querySelector(".overlay").innerHTML = html;
-        }
-
-        function openForm($form) {
-            $form.show(100);
-            $("#registerBtn, #loginBtn, #signOutBtn").prop("disabled", true);
-            $(".overlay").removeClass("hidden");
-        }
-
-        function closeForms() {
-            $(".registerContainer, .loginContainer, .createPostContainer, #signOutConfirm").hide();
-            $("#registerBtn, #loginBtn, #signOutBtn").prop("disabled", false);
-            $(".overlay").html("")
-            $(".overlay").addClass("hidden");
-        }
-
-        function displaySpinner(){
-            $(".spinner").removeClass("hidden")
-        }
-        function hideSpinner(){
-            $(".spinner").addClass("hidden")
-        }
-
-        function handleCreatePost(id, message){
-            return new Promise((resolve, reject) => {
-                $.ajax({ 
-                    type: "POST",
-                    url: "http://hyeumine.com/forumNewPost.php",
-                    data: {
-                        post: message,
-                        id: userId,
-                    },
-                    success : data => {
-                        resolve(data)
-                    },
-                    error : error => {
-                        reject(error);
-                    }
-                });
-                } 
-            )
-        }
-
-        function handleDeletePost(postId){
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    type: "GET",
-                    url: "http://hyeumine.com/forumDeletePost.php",
-                    data : {
-                        id : parseInt(postId)
-                    },
-                    success : (data) => {
-                        resolve(data)
-                    },
-                    error : (error) =>{
-                        reject(error)
-                    }
-                })
-            })
-        }
-
-        async function deletePost(postId){
-            displaySpinner()
-            try {
-                const result = await handleDeletePost(postId);
-                $(`#${postId}`).remove()
-                hideSpinner()
-                closeForms();
-            } catch (error) {
-                alert("Something went wrong");
-                console.log(error)
-            }
-        } 
-
-        function handleReply(postId, message) {
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    type: "POST",
-                    url: "http://hyeumine.com/forumReplyPost.php",
-                    data: {
-                        user_id: userId,
-                        post_id: postId,
-                        reply: message
-                    },
-                    success: (data) => {
-                        resolve(data);
-                    },
-                    error: (error) => {
-                        reject(error);
-                    }
-                });
-            });
-        }
-
-        async function replyPost(postId) {
-            const message = $("#replyMessage").val()
-            displaySpinner()
-            try {
-                const result = await handleReply(postId, message);
-
-                posts = getPosts()
-                    .then((posts) =>{
-                        let item = posts.find(item => item.id === postId)
-
-                        if(item.reply){
-                            (item.reply).forEach(reply => {
-                                reply.uid === userId ? reply.replyOwner = true : reply.replyOwner = false;
-                            });
-                        }
-                        hideSpinner()
-                        $(".overlay").html("")
-                        createFocusedPostTemplate(item, userId)
-                    })
-            } catch (error) {
-                alert("Something went wrong")
-                console.log(error)
-            }
-        }
-
-        function handleDeleteReply(replyId){
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    type: "GET",
-                    url: `http://hyeumine.com/forumDeleteReply.php?id=${replyId}`,
-                    success: (data) =>{
-                        resolve(data)
-                    },
-                    error: (error) => {
-                        reject(error)
-                    }
-                })
-            })
-        }
-        
-        async function deletePostReply(replyId){
-            displaySpinner()
-            try{
-                getPosts()
-                    .then((posts) =>{
-                        let replyItem;
-                        for (const post of posts) {
-                            if (post.reply) {
-                                post.reply.forEach(item => {
-                                    if(item.id === replyId){
-                                        replyItem = post
-                                        replyItem.reply = replyItem.reply.filter(reply => reply.id !== replyId);
-                                        handleDeleteReply(replyId);
-                                    } 
-                                })
-                            }
-                        } 
-                        $(".overlay").html("")
-                        if(replyItem.reply){
-                            (replyItem.reply).forEach(item => {
-                                item.uid === userId ? item.replyOwner = true : item.replyOwner = false;
-                            })
-                        }
-                        createFocusedPostTemplate(replyItem, userId)
-                        hideSpinner()
-                    }) 
-                const posts = await getPosts();
-            }catch(error){
-                console.log("Something went wrong", error);
-            }
-        }
-        function handleUserLogin(loginUsername) {
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                type : "POST",
-                url: "http://hyeumine.com/forumLogin.php",
-                data : {
-                    username: loginUsername,
-                },
-                success: (data) => {
-                    try{
-                        data = JSON.parse(data)
-                        userId = data.user.id;
-                        username = loginUsername
-                        localStorage.setItem("userId", userId);
-                        localStorage.setItem("username", username);
-                        renderData(posts, userId)
-                        checkUser()
-                        resolve(data)
-                    }catch(error){
-                        console.log(error)    
-                        reject(error)
-                    }
-                    },
-                })
-
-            });
-        }
-        function closePostFocus(){
-            const overlay = $(".overlay")
-            overlay.html("")
-            overlay.addClass("hidden");
-        }
-
-
-        document.onkeydown = function(e){
-            switch (e.keyCode){
-                case 27:
-                    closeForms();
-                    break;
-            }
-        }
-
-        function noUserError() {
-            const overlay = $('<div class="overlay" id="overlay"></div>');
-
-            overlay.click(function (event) {
-              if (event.target === this) {
-                overlay.remove()
-                closeForms();
-              }
-            });
-
-            const error = $(
-              '<div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4" role="alert">'
-            );
-
-            error.append('<p class="font-bold">Error!</p>');
-            error.append("<p>Invalid User Credentials!</p>");
-
-            overlay.append(error);
-
-            $("body").append(overlay);
-        }
-
-    $('document').ready( function(){
-
-        checkUser()
-        getPosts(1)
-            .then((posts) => {
-                posts = posts;
-                console.log(posts)
-                renderData(posts, userId);
-                $(".posts-loader").addClass("hidden")
-            })
-            .catch((error) => {
-                console.error("Error getting posts:", error);
-            }); 
-
-        $("#register").on("submit", function(e) {
-            e.preventDefault();
-            const registerLastName = $("#registerLastName").val();
-            const registerFirstName = $("#registerFirstName").val();
-            const registerUserName = $("#registerUserName").val()
-            $.ajax({
-                type: "POST",
-                url: "http://hyeumine.com/forumCreateUser.php",
-                data: {
-                    lastName : registerLastName,
-                    firstName : registerFirstName,
-                    username: registerUserName 
-                },
-                success: (data) => {
-                    data = JSON.parse(data);
-                    console.log(data)
-                    userId = data.id
-                    username = data.username
-                    localStorage.setItem("userId", userId);
-                    localStorage.setItem("username", username);
-                    checkUser();
-                }
-            })
-            closeForms();
-        })
-        
-
-        $("#login").on("submit", async function(e) {
-            e.preventDefault(); // Prevent the default form submission
-
-            displaySpinner();
-            const loginUsername = $("#loginUserName").val();
-
-            try {
-                await handleUserLogin(loginUsername);
-            } catch (error) {
-                console.log("Something went wrong" + error);
-            } finally {
-                hideSpinner();
-                closeForms();
-            }
-        });
-
-
-        $("#signOutBtn").bind("click", function(){
-            openForm($("#signOutConfirm"));
-            $("#signoutCancelButton").on("click", function(){
-                closeForms();
-            })
-            $("#signoutConfirmButton").on("click", function(){
-                localStorage.removeItem("userId")
-                localStorage.removeItem("username")
-                location.reload();
-            })
-        })
-
-        $("#newPost").on("submit", async function(e) {
-            e.preventDefault();
-            const message = $("#message").val();
-
-            displaySpinner();
-            try{
-                await handleCreatePost(userId, message);
-                $("#message").val('');
-                getPosts()
-                    .then((data) => {
-                        renderData(data, userId);
-                        hideSpinner();
-                    })    
-            }catch(error){
-                console.log("Something went wrong", error)
-            }
-        });
-        $("#registerBtn").on("click", function () {
-            openForm($(".registerContainer"));
-        });
-
-        $("#loginBtn").on("click", function () {
-            openForm($(".loginContainer"));
-        });
-
-        $("#createPostBtn").on("click", function () {
-            openForm($(".createPostContainer"));
-        });
-        
-        $(".overlay").on("click", function (event) {
-            if ($(event.target).hasClass("overlay")) {
-                closeForms();
-            }
-        });
-
-        $('#activity').on('click', '.post-item', function() {
-            const id = $(this).attr('id');
-            let item = posts.find(item => item.id === id)
-
-            if(item.reply){
-                (item.reply).forEach(reply => {
-                    reply.uid === userId ? reply.replyOwner = true : reply.replyOwner = false;
-                });
-            }
-
-            const overlay = $(".overlay");
-            createFocusedPostTemplate(item, userId)
-            overlay.removeClass("hidden")
-            overlay.addClass("z-50")
-            overlay.click(function (event) {
-                if(event.target == this){
-                    overlay.removeClass("z-50")
-                    closePostFocus();
-                }
-            });
-        });
-
-        $('#posts-container').on('click', '.post-item', function() {
-            const id = $(this).attr('id');
-            let item = posts.find(item => item.id === id)
-
-            if(item.reply){
-                (item.reply).forEach(reply => {
-                    reply.uid === userId ? reply.replyOwner = true : reply.replyOwner = false;
-                });
-            }
-
-            const overlay = $(".overlay");
-            createFocusedPostTemplate(item, userId)
-            overlay.removeClass("hidden")
-            overlay.click(function (event) {
-                if(event.target == this){
-                    closePostFocus();
-                }
-            });
-        });
-    
-    
-    });
-    </script>
+    <script src = "index.js" defer></script>
 </body>
 </html>

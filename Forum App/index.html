@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forum App</title>
+    <title>Forum</title>
+    <link rel="icon" type="image/gif" href="https://media.tenor.com/Vy5sPxwNWxAAAAAi/sebusun-mocha.gif" />
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -119,8 +120,8 @@
                 {{/if}}
             </div>
 
-            {{#if data.isLoggedIn}}
-            <label class="mt-2 block text-xs font-medium text-gray-900" for="message">Comment as {{username}}</label>
+            {{#if data.username}}
+            <label class="mt-2 block text-xs font-medium text-gray-900" for="message">Comment as {{data.username}}</label>
                 <textarea class="mt-2 block text-xs p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 min-h-[50px] max-h-[500px] resize-y" id="replyMessage" placeholder="ex... batia pod sa imong post oi delete ko ni ron"></textarea>
             <button class="mt-2 py-2 px-4 text-xs text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120 ml-auto" onclick="replyPost('{{data.id}}')">Comment</button>           
             {{/if}}
@@ -151,7 +152,7 @@
         <a class="" href="index.html">
             <div class="flex items-end">
                 <img class = "w-1/6 h-full" src="https://media.tenor.com/lqtU1G4aaqIAAAAi/yom-dance.gif" alt="">
-                <h1 class="text-2xl font-semibold ml-2">Forum App TODO: CONFIRMATION PROMPTS</h1>
+                <h1 class="text-4xl font-black">Forum</h1>
             </div>
         </a>
         
@@ -189,7 +190,20 @@
                 <p class="text-gray-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quia assumenda consequuntur excepturi, corporis optio numquam ipsum aut? Vel, dolore natus!</p>
             </div>
             <h2 class = "text-lg font-bold mt-6">My activities</h2>
-            <div id = "activity" class = "max-h-[25rem] overflow-x-hidden overflow-y-auto h-full">
+            <div id = "activity" class = "max-h-[] overflow-x-hidden overflow-y-auto h-full">
+            </div>
+        </div>
+    </div>
+
+
+    <div id = "signOutConfirm" class = "hidden z-30 fixed bg-white px-8 py-6 border rounded shadow-md top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <div class = "flex flex-col items-center">
+            <h1 class = "text-center text-4xl font-black">Sign out</h1>
+            <img class = "w-1/3" src="https://media.tenor.com/t7yxNky6vVoAAAAi/sebusun-mocha.gif" alt="">
+            <p class = "font-medium">Are you sure you would like to sign out of your account?</p>
+            <div class = "flex flex-row justify-center gap-3 mt-4">
+                <button id = "signoutConfirmButton" class = "py-2 px-4 text-black border rounded border-blue-500 hover:text-white hover:bg-blue-500 hover:transition-all transition ease-in-out delay-120 ">Sign out</button>
+                <button id = "signoutCancelButton" class = "py-2 px-4 text-white border rounded border-blue-500 bg-blue-500 hover:text-blue-500 hover:bg-white hover:transition-all transition ease-in-out delay-120">Cancel</button>
             </div>
         </div>
     </div>
@@ -232,7 +246,7 @@
 
     <div class="posts-loader absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <img class = "" src="https://media.tenor.com/EWB9EfXiwuEAAAAi/chill-cute.gif" alt="">
-        <h1 class = "text-center text-2xl font-semibold">Getting posts...</h1>
+        <h1 class = "text-center text-4xl font-bold mt-4">Getting posts...</h1>
     </div>
 
    
@@ -366,7 +380,8 @@
 
         function createFocusedPostTemplate(item, usernameId) {
             item.uid == usernameId ? item.postOwner = true : item.postOwner = false
-            usernameId == undefined ? item.isLoggedIn = false: item.isLoggedIn = true;
+            usernameId == undefined ? item.username = null: item.username = username;
+
             const template = Handlebars.compile($("#postFocus").html())
             const context = { data: item };
             const html = template(context);
@@ -380,7 +395,7 @@
         }
 
         function closeForms() {
-            $(".registerContainer, .loginContainer, .createPostContainer").hide();
+            $(".registerContainer, .loginContainer, .createPostContainer, #signOutConfirm").hide();
             $("#registerBtn, #loginBtn, #signOutBtn").prop("disabled", false);
             $(".overlay").html("")
             $(".overlay").addClass("hidden");
@@ -658,9 +673,15 @@
 
 
         $("#signOutBtn").bind("click", function(){
-            localStorage.removeItem("userId")
-            localStorage.removeItem("username")
-            location.reload();
+            openForm($("#signOutConfirm"));
+            $("#signoutCancelButton").on("click", function(){
+                closeForms();
+            })
+            $("#signoutConfirmButton").on("click", function(){
+                localStorage.removeItem("userId")
+                localStorage.removeItem("username")
+                location.reload();
+            })
         })
 
         $("#newPost").on("submit", async function(e) {
@@ -680,7 +701,6 @@
                 console.log("Something went wrong", error)
             }
         });
-
         $("#registerBtn").on("click", function () {
             openForm($(".registerContainer"));
         });

@@ -10,6 +10,8 @@
 - [ ] Implement sharing
 - [ ] Display pinned posts in user profile
 - [ ] Fix and improve styling
+- [ ] Close side drawer when escape key is hit
+- [ ] Implement real time updates from other users | ambot akong idead is mag get request every second try ra nako latur
 - [x] Implement pinning of posts
 - [x] Fix reply array when commenting on posts
 - [x] Close post focus after deleting a post

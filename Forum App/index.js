@@ -4,9 +4,12 @@ let profileId;
 let profileActivity;
 let username;
 let posts
-
+let postsLen
 let postFocusTemplate;
 let postsTemplate
+let onFocus = false
+let focusedId
+
 if (localStorage.userId) {
     userId = localStorage.userId;
     username = localStorage.username
@@ -16,6 +19,22 @@ if (localStorage.userId) {
 if(!localStorage.pinnedPosts){
     localStorage.setItem("pinnedPosts", []);
 }
+
+Handlebars.registerHelper('getUserState', function() {
+    return userId !== undefined; 
+});
+ 
+Handlebars.registerHelper('getUsername', function() {
+    return username; 
+});
+
+Handlebars.registerHelper('isNotEmpty', function(array, options) {
+    if (Array.isArray(array) && array.length > 0) {
+        return true 
+    } else {
+        return false
+    }
+});
 
 
 function checkUser(){
@@ -38,6 +57,21 @@ function checkUser(){
     }
 }
 
+// function showToast(message) {
+//     const postsTemplate = $("#newPostToast").html();
+//     const template = Handlebars.compile(postsTemplate);
+//     const html = template();
+
+//     const toastContainer = $("#toast-container");
+
+//     toastContainer.append(html);
+
+//     setTimeout(() => {
+//         toastContainer.children().first().remove();
+//     }, 5000);
+// }
+
+
 $("#searchInput").on("input", function() {
     const input = $("#searchInput");
     const query = input.val().toLowerCase(); 
@@ -48,36 +82,36 @@ $("#searchInput").on("input", function() {
         const replyAuthorName = item.reply ? item.reply.map(replyItem => replyItem.user.toLowerCase()).join(" ") : '';
         return postText.includes(query) || replyText.includes(query) || authorName.includes(query) || replyAuthorName.includes(query);
     });
-    renderData(filteredPosts, userId, $("#posts-container"))
+    renderData(filteredPosts, userId, $("#posts-container"), $("#posts"))
 });
 
-function openSideDrawer(isChecked){
-    var isChecked = $("#sidebar-checkbox").prop("checked");
-    $("#drawer").css("right", 0).css("transform", "translateX(0)");
-    renderActivity(posts) 
+function openSideDrawer(){
+    $("#drawer").removeClass('translate-x-full');
+
     const overlay = $("<div class='sidebar-overlay z-1'></div>");
     $("body").append(overlay);
     overlay.click(function (event) {
         if (event.target == this) {
-            $("#sidebar-checkbox").prop("checked", isChecked);
-            $("#drawer").css("right", "-100%").css("transform", "translateX(100%)");
+            closeSideDrawer(); 
             overlay.remove();
         }
     });
 }
 
 function closeSideDrawer(){
-    $(".sidebar-overlay").remove();
-    $("#drawer").css("right", "-100%").css("transform", "translateX(100%)");
+    $(".sidebar-overlay").remove()
+    $("#drawer").addClass('translate-x-full');
 }
 
-$("#sidebar-button").on("click", function () {
-    var isChecked = $("#sidebar-checkbox").prop("checked");
-    $("#sidebar-checkbox").prop("checked", isChecked);
-    if (!isChecked) {
-        openSideDrawer() 
+$(document).on("click", "#sidebar-button", function () {
+    profileActivity = getProfileActivity(userId, posts)
+
+    renderData(profileActivity, userId, $("#activity"), $("#activities"))
+    const drawer = $('#drawer');
+    if (drawer.hasClass('translate-x-full')) {
+        openSideDrawer(); 
     } else {
-        closeSideDrawer()
+        closeSideDrawer();
     }
 });
     
@@ -98,19 +132,54 @@ $("#sidebar-button").on("click", function () {
 //         postsTemplate = templateContent;                    
 //     }
 // })
+function deepEqual(obj1, obj2) {
+    if (typeof obj1 !== typeof obj2) {
+        return false;
+    }
 
-function getPosts(page) {
+    // If both are objects, compare their properties
+    if (typeof obj1 === 'object' && obj1 !== null) {
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
+
+        if (keys1.length !== keys2.length) {
+            return false;
+        }
+
+        for (let key of keys1) {
+            if (!deepEqual(obj1[key], obj2[key])) {
+                return false;
+            }
+        }
+    } else {
+        if (obj1 !== obj2) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function getArrayDifferences(arr1, arr2) {
+    const differences = [];
+
+    for (let i = 0; i < arr1.length; i++) {
+        if (!deepEqual(arr1[i], arr2[i])) {
+            differences.push({ index: i, value1: arr1[i], value2: arr2[i] });
+        }
+    }
+    return differences;
+}
+
+
+function getPosts() {
     return new Promise((resolve, reject) => {
-        $("#sidebar-button").prop("disabled", true)
         $.ajax({
             type: "GET",
             url: "http://hyeumine.com/forumGetPosts.php",
             success: (data) => {
-                // let postData = JSON.parse(data).reverse();
-                let postData = JSON.parse(data)
-                posts  = postData
-                $("#sidebar-button").prop("disabled", false)
-                resolve(posts);
+                let postData = JSON.parse(data).reverse();
+                resolve(postData);
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 console.error("An error occurred:", thrownError);
@@ -120,13 +189,31 @@ function getPosts(page) {
     });
 }
 
-Handlebars.registerHelper('getUserState', function() {
-    return userId !== undefined; 
-});
- 
-Handlebars.registerHelper('getUsername', function() {
-    return username; 
-});
+setInterval(() => {
+    getPosts()
+        .then(data => {
+            const update = getArrayDifferences(data, posts)
+            if(update.length > 0){
+                console.log(update)
+                posts = data;
+                renderData(posts, userId, $("#posts-container"), $("#posts"))
+                if(profileId !== undefined){
+                    let profileActivity = getProfileActivity(profileId, posts);
+                    renderData(profileActivity, profileId, $("#userContentContainer"), $("#posts"))
+                }
+
+                if(onFocus === true){
+                    createFocusedPostTemplate(focusedPost, userId, $("#mainPostFocusContainer"));
+                    createFocusedPostTemplate(focusedPost, userId, $("#userProfileFocusContainer"));
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Error in getPosts:", error);
+        });
+}, 1000);
+
+
 
 function sortByPinnedPosts(a, b) {
     const pinnedA = a.isPinned ? a.pinnedTimestamp || 0 : 0;
@@ -135,49 +222,48 @@ function sortByPinnedPosts(a, b) {
     if (pinnedB - pinnedA !== 0) {
         return pinnedB - pinnedA;
     }
-
     return 0;
 }
 
-function renderData(posts, userNameId, container) {
-    let userPinnedPosts
-    
-    if(userNameId !== undefined && getUserPinnedPost(userNameId)[0] !== undefined){
+function renderData(posts, userNameId, container, template) {
+    const data = JSON.parse(JSON.stringify(posts));
+    let userPinnedPosts;
+
+    if (userNameId !== undefined && getUserPinnedPost(userNameId)[0] !== undefined) {
         userPinnedPosts = getUserPinnedPost(userNameId)[0];
-        if(userPinnedPosts.pins)userPinnedPosts = userPinnedPosts.pins
+        if (userPinnedPosts.pins) userPinnedPosts = userPinnedPosts.pins;
     }
-    posts.forEach(post => {
-        if(userNameId == post.uid){
-            post.postOwner = true;
-        }
-        post.replyCount = 0;
-        if(post.reply){
-            post.reply.forEach(element => {
-                if(element.reply.length > 0){
-                    post.replyCount++;
+    data.forEach(data => {
+        userNameId === data.uid ? data.postOwner = true : data.postOwner = false;
+        data.replyCount = 0;
+        if (data.reply) {
+            data.reply.forEach(element => {
+                if (element.reply.length > 0) {
+                    data.replyCount++;
                 }
             });
         }
-        post.isPinned = false;
-        post.pinnedTimestamp = null
-        if(userPinnedPosts){
-            const pinnedPost = userPinnedPosts.find(pin => pin.postId === post.id);
-            if(pinnedPost){
-                post.isPinned = userPinnedPosts.some(pin => pin.postId === post.id);
-                post.pinnedTimestamp = pinnedPost.timestamp;
+        data.isPinned = false;
+        data.pinnedTimestamp = null;
+        if (userPinnedPosts) {
+            const pinnedPost = userPinnedPosts.find(pin => pin.postId === data.id);
+            if (pinnedPost) {
+                data.isPinned = userPinnedPosts.some(pin => pin.postId === data.id);
+                data.pinnedTimestamp = pinnedPost.timestamp;
             }
         }
     });
 
-    if(userPinnedPosts){
-        posts.sort(sortByPinnedPosts);
+    if (userPinnedPosts) {
+        data.sort(sortByPinnedPosts);
     }
-    const postsTemplate = $("#posts").html();
-    const template = Handlebars.compile(postsTemplate);
-    const context = { data: posts, state : userId ? true : false };
+
+    template = Handlebars.compile(template.html());
+    const context = { data: data, state: userId ? true : false, isEmpty : data.length === 0 ? true : false };
     const html = template(context);
-    container.html(html)
+    container.html(html);
 }
+
 
 function getUserPinnedPost(id){
     const userPinnedPostsJSON = localStorage.getItem('pinnedPosts');
@@ -226,65 +312,58 @@ function pinPost(button) {
     }
 
     localStorage.setItem('pinnedPosts', JSON.stringify(existingPinnedPosts));
-    renderData(posts, userId, $("#posts-container"))
-    renderData(posts, userId, $("#userContentContainer"))
+    renderData(posts, userId, $("#posts-container"), $("#posts"))
+    renderData(posts, userId, $("#userContentContainer"), $("#posts"))
 }
 
+function getProfileActivity(profileId, posts){
+    let data = JSON.parse(JSON.stringify(posts));
 
-function renderActivity(posts) {
-    const activity = posts.filter(item => {
+    data = data.filter(item => {
         const id = item.uid;
         const replyText = item.reply ? item.reply.map(replyItem => replyItem.uid) : [];
-        return id ===  userId || replyText.includes(userId);
+        return id === profileId || replyText.includes(profileId);
     });
-    
-    const template = Handlebars.compile($("#activities").html());
-    const content = { data : activity };
-    const html = template(content);
-    document.getElementById("activity").innerHTML = html;
+    return data
 }
 
-function createFocusedPostTemplate(item, usernameId, container) {
-    if(item !== undefined){
-        if(item.reply){
-            (item.reply).forEach(reply => {
+function createFocusedPostTemplate(post, usernameId, container) {
+    let postData = JSON.parse(JSON.stringify(post));
+    console.log(post)
+    if(postData !== undefined){
+        if(postData.reply){
+            (postData.reply).forEach(reply => {
                 reply.uid === userId ? reply.replyOwner = true : reply.replyOwner = false;
                 reply.uid === profileId ? reply.postOP = true : reply.postOP = false 
             });
         }
 
-        item.uid == usernameId ? item.postOwner = true : item.postOwner = false
-        usernameId == undefined ? item.username = null: item.username = username;
+        postData.uid == usernameId ? postData.postOwner = true : postData.postOwner = false
         const template = Handlebars.compile($("#postFocus").html())
-        const context = { data: item };
+        const context = { data: postData};
         const html = template(context);
         container.html(html)
     }
 }
-function getProfileActivity(profileId, posts){
-    return posts.filter(item => {
-        const id = item.uid;
-        const replyText = item.reply ? item.reply.map(replyItem => replyItem.uid) : [];
-        return id === profileId || replyText.includes(profileId);
-    });
-}
+
 function createUserProfileTemplate(posts, profileId, username){
-    profileActivity = getProfileActivity(profileId, posts);
+    let data = JSON.parse(JSON.stringify(posts));
+    profileActivity = getProfileActivity(profileId, data);
 
     const isMainUser = userId === profileId ? true : false;
     const template = Handlebars.compile($("#userProfile").html());
     const context = { username : username, isMainUser : isMainUser};
     const html = template(context)
     $("main").html(html);
-    renderData(profileActivity, profileId, $("#userContentContainer"))
+    renderData(profileActivity, profileId, $("#userContentContainer"), $("#posts"))
 }
 
-function createUserProfileFocusedPostTemplate(item, usernameId , container){
-    item.uid == usernameId ? item.postOwner = true : item.postOwner = false
-    usernameId == undefined ? item.username = null: item.username = username;
+function createUserProfileFocusedPostTemplate(post, usernameId , container){
+    let data = JSON.parse(JSON.stringify(post));
+    data.uid == usernameId ? data.postOwner = true : data.postOwner = false
 
     const template = Handlebars.compile($("#postFocus").html())
-    const context = { data: item };
+    const context = { data: data};
     const html = template(context);
     container.html(html)
 }
@@ -316,17 +395,42 @@ function handleCreatePost(id, message){
             url: "http://hyeumine.com/forumNewPost.php",
             data: {
                 post: message,
-                id: userId,
+                id: id,
             },
-            success : data => {
+            success : (data) => {
                 resolve(data)
             },
-            error : error => {
+            error : (error) => {
                 reject(error);
             }
         });
         } 
     )
+}
+
+async function createNewPost(event){
+    event.preventDefault()
+    const message = $("#message").val();
+
+    displaySpinner();
+    try{
+        handleCreatePost(userId, message)
+            .then((data) => {
+                getPosts()
+                    .then((data) => {
+                        posts = data
+                        renderData(data, userId, $("#posts-container"), $("#posts"))
+                        renderData(getProfileActivity(userId, data), userId, $("#userContentContainer"), ("#posts"))
+                    })
+                    .then(() => {
+                        $("#message").val('');
+                        hideSpinner();
+                        closeForms();
+                    })
+        })
+    }catch(error){
+        console.log("Something went wrong", error)
+    }
 }
 
 function handleDeletePost(postId){
@@ -350,8 +454,8 @@ function handleDeletePost(postId){
 async function deletePost(postId){
     displaySpinner()
     try {
-        const result = await handleDeletePost(postId);
-        $(`#${postId}`).remove()
+        await handleDeletePost(postId);
+        $(`#${postId}.post-item`).remove()
         hideSpinner()
         closeForms();
         closePostFocus()
@@ -386,13 +490,14 @@ async function replyPost(postId) {
     const message = $("#replyMessage").val()
     displaySpinner()
     try {
-        const result = await handleReply(postId, message);
+        await handleReply(postId, message);
 
-        posts = getPosts()
-            .then((posts) =>{                
-                renderData(posts, userId, $("#posts-container"))
+        getPosts()
+            .then((data) =>{                
+                posts = data
+                renderData(posts, userId, $("#posts-container"), $("#posts"))
 
-                renderData(getProfileActivity(profileId, posts), profileId, $("#userContentContainer"))
+                renderData(getProfileActivity(profileId, posts), profileId, $("#userContentContainer"), $("#posts"))
                 focusedPost = posts.find(item => item.id === postId)
 
                 hideSpinner()
@@ -426,7 +531,8 @@ async function deletePostReply(replyId){
     displaySpinner()
     try{
         getPosts()
-            .then((posts) =>{
+            .then((data) =>{
+                posts = data
                 for (const post of posts) {
                     if (post.reply) {
                         post.reply.forEach(item => {
@@ -440,14 +546,13 @@ async function deletePostReply(replyId){
                 } 
                 $(".overlay").html("")
 
-                renderData(posts, userId, $("#posts-container"))
-                renderData(getProfileActivity(profileId, posts), profileId, $("#userContentContainer"))
+                renderData(posts, userId, $("#posts-container"), $("#posts"))
+                renderData(getProfileActivity(profileId, posts), profileId, $("#userContentContainer"), $("#posts"))
 
                 createFocusedPostTemplate(focusedPost, userId, $("#mainPostFocusContainer"));
                 createFocusedPostTemplate(focusedPost, userId, $("#userProfileFocusContainer"))
                 hideSpinner()
             }) 
-        const posts = await getPosts();
     }catch(error){
         console.log("Something went wrong", error);
     }
@@ -467,7 +572,7 @@ function handleUserLogin(loginUsername) {
                 username = loginUsername
                 localStorage.setItem("userId", userId);
                 localStorage.setItem("username", username);
-                renderData(posts, userId, $("#posts-container"))
+                renderData(posts, userId, $("#posts-container"), $("#posts"))
                 checkUser()
                 resolve(data)
             }catch(error){
@@ -480,10 +585,9 @@ function handleUserLogin(loginUsername) {
     });
 }
 function editProfile(){
-    createUserProfileTemplate(posts, userId, username)
-    var isChecked = $("#sidebar-checkbox").prop("checked");
-    $("#sidebar-checkbox").prop("checked", !isChecked);
-    $("#drawer").css("right", "-100%").css("transform", "translateX(100%)");
+    closeSideDrawer()
+    profileId = userId
+    createUserProfileTemplate(posts, profileId, username)
     $(".sidebar-overlay").remove();
 }
 
@@ -491,6 +595,7 @@ function closePostFocus(){
     $(".postFocusContainer").html("")
     $('.posts-container .post-item').removeClass("bg-[#3B82F6]");
     $('.posts-container .post-item').removeClass("border-[#1C1917]");
+    onFocus = false
 }
 
 document.onkeydown = function(e){
@@ -499,6 +604,7 @@ document.onkeydown = function(e){
             closeForms();
             closePostFocus();
             closeSideDrawer();
+            $(".overlay").remove();
             break;
     }
 }
@@ -537,13 +643,12 @@ function backToTop() {
 
 $('document').ready( function(){
     checkUser()
-    getPosts(1)
-        .then((posts) => {
-            posts = posts;
-            console.log(posts)
+    getPosts()
+        .then((data) => {
+            posts = data;
 
             createUserProfileTemplate(posts, '2009', "fried milk")
-            // renderData(posts, userId, $("#posts-container"));
+            // renderData(posts, userId, $("#posts-container"), $("#posts"));
             $(".posts-loader").addClass("hidden")
         })
         .catch((error) => {
@@ -578,7 +683,7 @@ $('document').ready( function(){
 
 
     $("#login").on("submit", async function(e) {
-        e.preventDefault(); // Prevent the default form submission
+        e.preventDefault(); 
 
         displaySpinner();
         const loginUsername = $("#loginUserName").val();
@@ -590,10 +695,9 @@ $('document').ready( function(){
         } finally {
             hideSpinner();
             closeForms();
-            createFocusedPostTemplate(focusedPost, userId, $("#mainPostFocusContainer")) 
+            if(onFocus)createFocusedPostTemplate(focusedPost, userId, $("#mainPostFocusContainer")) 
         }
-  });
-
+    });
 
     $("#signOutBtn").bind("click", function(){
         openForm($("#signOutConfirm"));
@@ -607,24 +711,6 @@ $('document').ready( function(){
         })
     })
 
-    $("#newPost").on("submit", async function(e) {
-        e.preventDefault();
-        const message = $("#message").val();
-
-        displaySpinner();
-        try{
-            await handleCreatePost(userId, message);
-            $("#message").val('');
-            getPosts()
-                .then((data) => {
-                    renderData(data, userId, $("#posts-container"));
-                    hideSpinner();
-                    closeForms();
-                })    
-        }catch(error){
-            console.log("Something went wrong", error)
-        }
-    });
     $("#registerBtn").on("click", function () {
         openForm($(".registerContainer"));
     });
@@ -655,16 +741,14 @@ $('document').ready( function(){
 
         $(`#${id}`)[0].scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center'});
 
-        const overlay = $(".sidebar-overlay");
         createFocusedPostTemplate(focusedPost, userId, $("#mainPostFocusContainer"))
+        createFocusedPostTemplate(focusedPost, profileId, $("#userProfileFocusContainer"))
 
-        var isChecked = $("#sidebar-checkbox").prop("checked");
-        $("#sidebar-checkbox").prop("checked", !isChecked);
-        $("#drawer").css("right", "-100%").css("transform", "translateX(100%)");
-        overlay.remove();
+        closeSideDrawer()
     });
 
     $(document).on('click', '.posts-container .post-item', function(event) {
+        onFocus = true
         $('.posts-container .post-item').not(this).removeClass("bg-[#3B82F6]");
         $('.posts-container .post-item').not(this).removeClass("border-[#1C1917]");
         const target = event.target;
@@ -673,15 +757,13 @@ $('document').ready( function(){
             $(this).addClass("bg-[#3B82F6]");
             $(this).addClass("border-[#1C1917]");
 
-            const id = $(this).attr('id');
-            focusedPost = posts.find(item => item.id === id);
-            profileId = focusedPost.uid;
+            focusedId = $(this).attr('id');
+            focusedPost = posts.find(item => item.id === focusedId);
 
             createFocusedPostTemplate(focusedPost, userId, $("#mainPostFocusContainer"));
-            createUserProfileFocusedPostTemplate(focusedPost, userId, $("#userProfileFocusContainer"))
+            createFocusedPostTemplate(focusedPost, userId, $("#userProfileFocusContainer"));
         }
     });
-      
 
     $(document).on("click", ".userLink", function(event){
         const id = $(this).attr('id')

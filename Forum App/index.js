@@ -1,4 +1,5 @@
 let userId;
+let focusedPost;
 let profileId;
 let profileActivity;
 let username;
@@ -12,13 +13,23 @@ if (localStorage.userId) {
     checkUser()
 }
 
+if(!localStorage.pinnedPosts){
+    localStorage.setItem("pinnedPosts", []);
+}
+
+
 function checkUser(){
     if(userId){
         $("#registerBtn, #loginBtn").hide();
         $("#signOutBtn").show();
         $("#createPostBtn").show();
         $("#sidebar-button").show();
-        $("#currentUser").text(username)
+        if(username.length > 0){
+            $("#currentUser").text(username)
+        }else{
+            $("#currentUser").text("Anon")
+            $("#currentUser").addClass("italic")
+        }
     }else{
         $("#registerBtn, #loginBtn").show();
         $("#signOutBtn").hide();
@@ -99,30 +110,113 @@ function getPosts(page) {
 }
 
 Handlebars.registerHelper('getUserState', function() {
-  return userId !== undefined; 
+    return userId !== undefined; 
 });
  
 Handlebars.registerHelper('getUsername', function() {
-  return username; 
+    return username; 
 });
 
+function sortByPinnedPosts(a, b) {
+    const pinnedA = a.isPinned ? a.pinnedTimestamp || 0 : 0;
+    const pinnedB = b.isPinned ? b.pinnedTamp || 0 : 0;
+
+    if (pinnedB - pinnedA !== 0) {
+        return pinnedB - pinnedA;
+    }
+
+    return 0;
+}
+
 function renderData(posts, userNameId, container) {
+    let userPinnedPosts
+    
+    if(userNameId !== undefined && getUserPinnedPost(userNameId)[0] !== undefined){
+        userPinnedPosts = getUserPinnedPost(userNameId)[0];
+        if(userPinnedPosts.pins)userPinnedPosts = userPinnedPosts.pins
+    }
     posts.forEach(post => {
         if(userNameId == post.uid){
             post.postOwner = true;
         }
+        post.replyCount = 0;
         if(post.reply){
-            post.replyCount = post.reply.length;
-        }else{
-            post.replyCount = 0;
+            post.reply.forEach(element => {
+                if(element.reply.length > 0){
+                    post.replyCount++;
+                }
+            });
+        }
+        post.isPinned = false;
+        post.pinnedTimestamp = null
+        if(userPinnedPosts){
+            const pinnedPost = userPinnedPosts.find(pin => pin.postId === post.id);
+            if(pinnedPost){
+                post.isPinned = userPinnedPosts.some(pin => pin.postId === post.id);
+                post.pinnedTimestamp = pinnedPost.timestamp;
+            }
         }
     });
+
+    if(userPinnedPosts)posts.sort(sortByPinnedPosts);
     const postsTemplate = $("#posts").html();
     const template = Handlebars.compile(postsTemplate);
     const context = { data: posts, state : userId ? true : false };
     const html = template(context);
     container.html(html)
 }
+
+function getUserPinnedPost(id){
+    const userPinnedPostsJSON = localStorage.getItem('pinnedPosts');
+    let userPinnedPosts = [];
+
+    if (userPinnedPostsJSON) {
+        userPinnedPosts = JSON.parse(userPinnedPostsJSON);
+    } 
+
+    return userPinnedPosts.filter(item => item.userId === id);
+}
+
+function getPinnedPosts(){
+    const existingPinnedPostsJSON = localStorage.getItem('pinnedPosts');
+    let existingPinnedPosts = [];
+
+    if (existingPinnedPostsJSON) {
+        existingPinnedPosts = JSON.parse(existingPinnedPostsJSON);
+    }
+
+    return existingPinnedPosts;
+}
+
+function pinPost(button) {
+    let timestamp = new Date().getTime();
+
+    const postId = button.id;
+    const existingPinnedPosts = getPinnedPosts();
+
+    const pinnedPostIndex = existingPinnedPosts.findIndex(pin => pin.userId === userId);
+
+    if (pinnedPostIndex !== -1) {
+        let pinnedPost = existingPinnedPosts[pinnedPostIndex];
+        let pinIndex = pinnedPost.pins.findIndex(pin => pin.postId === postId);
+
+        if (pinIndex !== -1) {
+            pinnedPost.pins.splice(pinIndex, 1);
+        } else {
+            pinnedPost.pins.push({ postId: postId, timestamp: timestamp });
+        }
+    } else {
+        existingPinnedPosts.push({
+            userId: userId,
+            pins: [{ postId: postId, timestamp: timestamp }]
+        });
+    }
+
+    localStorage.setItem('pinnedPosts', JSON.stringify(existingPinnedPosts));
+
+    renderData(posts, userId, $("#posts-container"))
+}
+
 
 function renderActivity(posts) {
     const activity = posts.filter(item => {
@@ -138,12 +232,21 @@ function renderActivity(posts) {
 }
 
 function createFocusedPostTemplate(item, usernameId, container) {
-    item.uid == usernameId ? item.postOwner = true : item.postOwner = false
-    usernameId == undefined ? item.username = null: item.username = username;
-    const template = Handlebars.compile($("#postFocus").html())
-    const context = { data: item };
-    const html = template(context);
-    container.html(html)
+    if(item !== undefined){
+        if(item.reply){
+            (item.reply).forEach(reply => {
+                reply.uid === userId ? reply.replyOwner = true : reply.replyOwner = false;
+                reply.uid === profileId ? reply.postOP = true : reply.postOP = false 
+            });
+        }
+
+        item.uid == usernameId ? item.postOwner = true : item.postOwner = false
+        usernameId == undefined ? item.username = null: item.username = username;
+        const template = Handlebars.compile($("#postFocus").html())
+        const context = { data: item };
+        const html = template(context);
+        container.html(html)
+    }
 }
 function getProfileActivity(profileId, posts){
     return posts.filter(item => {
@@ -238,6 +341,7 @@ async function deletePost(postId){
         $(`#${postId}`).remove()
         hideSpinner()
         closeForms();
+        closePostFocus()
         $("#postFocusContainer").html("")
     } catch (error) {
         alert("Something went wrong");
@@ -276,17 +380,14 @@ async function replyPost(postId) {
                 renderData(posts, userId, $("#posts-container"))
 
                 renderData(getProfileActivity(profileId, posts), profileId, $("#userContentContainer"))
-                let item = posts.find(item => item.id === postId)
+                focusedPost = posts.find(item => item.id === postId)
 
-                if(item.reply){
-                    (item.reply).forEach(reply => {
-                        reply.uid === userId ? reply.replyOwner = true : reply.replyOwner = false;
-                    });
-                }
+
                 hideSpinner()
                 $(".overlay").html("")
-                createFocusedPostTemplate(item, userId, $("#mainPostFocusContainer"))
-                createFocusedPostTemplate(item, userId, $("#userProfileFocusContainer"))
+
+                createFocusedPostTemplate(focusedPost, userId, $("#mainPostFocusContainer"))
+                createFocusedPostTemplate(focusedPost, userId, $("#userProfileFocusContainer"))
             })
     } catch (error) {
         alert("Something went wrong")
@@ -314,12 +415,11 @@ async function deletePostReply(replyId){
     try{
         getPosts()
             .then((posts) =>{
-                let replyItem;
                 for (const post of posts) {
                     if (post.reply) {
                         post.reply.forEach(item => {
                             if(item.id === replyId){
-                                replyItem = post
+                                focusedPost = post
                                 replyItem.reply = replyItem.reply.filter(reply => reply.id !== replyId);
                                 handleDeleteReply(replyId);
                             } 
@@ -327,15 +427,12 @@ async function deletePostReply(replyId){
                     }
                 } 
                 $(".overlay").html("")
-                if(replyItem.reply){
-                    (replyItem.reply).forEach(item => {
-                        item.uid === userId ? item.replyOwner = true : item.replyOwner = false;
-                    })
-                }
+
                 renderData(posts, userId, $("#posts-container"))
                 renderData(getProfileActivity(profileId, posts), profileId, $("#userContentContainer"))
-                createFocusedPostTemplate(replyItem, userId, $("#mainPostFocusContainer"));
-                createFocusedPostTemplate(replyItem, userId, $("#userProfileFocusContainer"))
+
+                createFocusedPostTemplate(focusedPost, userId, $("#mainPostFocusContainer"));
+                createFocusedPostTemplate(focusedPost, userId, $("#userProfileFocusContainer"))
                 hideSpinner()
             }) 
         const posts = await getPosts();
@@ -380,12 +477,15 @@ function editProfile(){
 
 function closePostFocus(){
     $(".postFocusContainer").html("")
+    $('.posts-container .post-item').removeClass("bg-[#3B82F6]");
+    $('.posts-container .post-item').removeClass("border-[#1C1917]");
 }
 
 document.onkeydown = function(e){
     switch (e.keyCode){
         case 27:
             closeForms();
+            closePostFocus();
             break;
     }
 }
@@ -428,6 +528,10 @@ $('document').ready( function(){
         .then((posts) => {
             posts = posts;
             console.log(posts)
+           
+            
+
+
             // createUserProfileTemplate(posts, '62', "testo")
             renderData(posts, userId, $("#posts-container"));
             $(".posts-loader").addClass("hidden")
@@ -476,6 +580,7 @@ $('document').ready( function(){
         } finally {
             hideSpinner();
             closeForms();
+            createFocusedPostTemplate(focusedPost, userId, $("#mainPostFocusContainer")) 
         }
   });
 
@@ -529,18 +634,19 @@ $('document').ready( function(){
     });
 
     $('#activity').on('click', '.post-item', function() {
-        console.log("asd")
         const id = $(this).attr('id');
-        let item = posts.find(item => item.id === id)
+        focusedPost = posts.find(item => item.id === id)
+        
+        $('.posts-container .post-item').removeClass("bg-[#3B82F6]");
+        $('.posts-container .post-item').removeClass("border-[#1C1917]");
 
-        if(item.reply){
-            (item.reply).forEach(reply => {
-                reply.uid === userId ? reply.replyOwner = true : reply.replyOwner = false;
-            });
-        }
+        $(`#${id}`).addClass("bg-[#3B82F6]");
+        $(`#${id}`).addClass("border-[#1C1917]");
+
+        $(`#${id}`)[0].scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center'});
 
         const overlay = $(".sidebar-overlay");
-        createFocusedPostTemplate(item, userId, $("#mainPostFocusContainer"))
+        createFocusedPostTemplate(focusedPost, userId, $("#mainPostFocusContainer"))
 
         var isChecked = $("#sidebar-checkbox").prop("checked");
         $("#sidebar-checkbox").prop("checked", !isChecked);
@@ -549,38 +655,38 @@ $('document').ready( function(){
     });
 
     $(document).on('click', '.posts-container .post-item', function(event) {
+        $('.posts-container .post-item').not(this).removeClass("bg-[#3B82F6]");
+        $('.posts-container .post-item').not(this).removeClass("border-[#1C1917]");
         const target = event.target;
-        const id = $(this).attr('id');
-      
-        let item = posts.find(item => item.id === id);
-        profileId = item.uid;
+        
+        if(!$(target).hasClass("interact")){
+            $(this).addClass("bg-[#3B82F6]");
+            $(this).addClass("border-[#1C1917]");
 
-        const username = item.user;
+            const id = $(this).attr('id');
+            focusedPost = posts.find(item => item.id === id);
+            profileId = focusedPost.uid;
+
+            createFocusedPostTemplate(focusedPost, userId, $("#mainPostFocusContainer"));
+            createUserProfileFocusedPostTemplate(focusedPost, userId, $("#userProfileFocusContainer"))
+        }
+    });
       
-          if (item.reply) {
-            item.reply.forEach(reply => {
-              reply.uid === userId ? reply.replyOwner = true : reply.replyOwner = false;
-            });
-          }
-            createFocusedPostTemplate(item, userId, $("#mainPostFocusContainer"));
-            createUserProfileFocusedPostTemplate(item, userId, $("#userProfileFocusContainer"))
-      });
 
     $(document).on("click", ".userLink", function(event){
         const id = $(this).attr('id')
         profileId = id
-        console.log(id)
 
-        let item = posts.find(post => post.uid === id);
+        let postItem = posts.find(post => post.uid === id);
 
-        if (!item) {
+        if (!postItem) {
             const postWithReply = posts.find(post => post.reply && post.reply.some(reply => reply.uid === id));
             if (postWithReply) {
-                item = postWithReply.reply.find(reply => reply.uid === profileId);
+                postItem = postWithReply.reply.find(reply => reply.uid === profileId);
             }
         }
 
-        const username = item.user;
+        const username = postItem.user;
     
         createUserProfileTemplate(posts, profileId, username);
         window.scrollTo({top: 0}); 

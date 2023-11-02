@@ -51,23 +51,33 @@ $("#searchInput").on("input", function() {
     renderData(filteredPosts, userId, $("#posts-container"))
 });
 
+function openSideDrawer(isChecked){
+    var isChecked = $("#sidebar-checkbox").prop("checked");
+    $("#drawer").css("right", 0).css("transform", "translateX(0)");
+    renderActivity(posts) 
+    const overlay = $("<div class='sidebar-overlay z-1'></div>");
+    $("body").append(overlay);
+    overlay.click(function (event) {
+        if (event.target == this) {
+            $("#sidebar-checkbox").prop("checked", isChecked);
+            $("#drawer").css("right", "-100%").css("transform", "translateX(100%)");
+            overlay.remove();
+        }
+    });
+}
+
+function closeSideDrawer(){
+    $(".sidebar-overlay").remove();
+    $("#drawer").css("right", "-100%").css("transform", "translateX(100%)");
+}
+
 $("#sidebar-button").on("click", function () {
     var isChecked = $("#sidebar-checkbox").prop("checked");
-    $("#sidebar-checkbox").prop("checked", !isChecked);
+    $("#sidebar-checkbox").prop("checked", isChecked);
     if (!isChecked) {
-        $("#drawer").css("right", 0).css("transform", "translateX(0)");
-        renderActivity(posts) 
-        const overlay = $("<div class='sidebar-overlay z-1'></div>");
-        $("body").append(overlay);
-        overlay.click(function (event) {
-            if (event.target == this) {
-                $("#sidebar-checkbox").prop("checked", isChecked);
-                $("#drawer").css("right", "-100%").css("transform", "translateX(100%)");
-                overlay.remove();
-            }
-        });
+        openSideDrawer() 
     } else {
-        $("#drawer").css("right", "-100%").css("transform", "translateX(100%)");
+        closeSideDrawer()
     }
 });
     
@@ -96,7 +106,8 @@ function getPosts(page) {
             type: "GET",
             url: "http://hyeumine.com/forumGetPosts.php",
             success: (data) => {
-                let postData = JSON.parse(data).reverse();
+                // let postData = JSON.parse(data).reverse();
+                let postData = JSON.parse(data)
                 posts  = postData
                 $("#sidebar-button").prop("disabled", false)
                 resolve(posts);
@@ -119,7 +130,7 @@ Handlebars.registerHelper('getUsername', function() {
 
 function sortByPinnedPosts(a, b) {
     const pinnedA = a.isPinned ? a.pinnedTimestamp || 0 : 0;
-    const pinnedB = b.isPinned ? b.pinnedTamp || 0 : 0;
+    const pinnedB = b.isPinned ? b.pinnedTimestamp || 0 : 0;
 
     if (pinnedB - pinnedA !== 0) {
         return pinnedB - pinnedA;
@@ -158,7 +169,9 @@ function renderData(posts, userNameId, container) {
         }
     });
 
-    if(userPinnedPosts)posts.sort(sortByPinnedPosts);
+    if(userPinnedPosts){
+        posts.sort(sortByPinnedPosts);
+    }
     const postsTemplate = $("#posts").html();
     const template = Handlebars.compile(postsTemplate);
     const context = { data: posts, state : userId ? true : false };
@@ -213,8 +226,8 @@ function pinPost(button) {
     }
 
     localStorage.setItem('pinnedPosts', JSON.stringify(existingPinnedPosts));
-
     renderData(posts, userId, $("#posts-container"))
+    renderData(posts, userId, $("#userContentContainer"))
 }
 
 
@@ -382,7 +395,6 @@ async function replyPost(postId) {
                 renderData(getProfileActivity(profileId, posts), profileId, $("#userContentContainer"))
                 focusedPost = posts.find(item => item.id === postId)
 
-
                 hideSpinner()
                 $(".overlay").html("")
 
@@ -420,7 +432,7 @@ async function deletePostReply(replyId){
                         post.reply.forEach(item => {
                             if(item.id === replyId){
                                 focusedPost = post
-                                replyItem.reply = replyItem.reply.filter(reply => reply.id !== replyId);
+                                focusedPost.reply = focusedPost.reply.filter(reply => reply.id !== replyId);
                                 handleDeleteReply(replyId);
                             } 
                         })
@@ -486,6 +498,7 @@ document.onkeydown = function(e){
         case 27:
             closeForms();
             closePostFocus();
+            closeSideDrawer();
             break;
     }
 }
@@ -528,12 +541,9 @@ $('document').ready( function(){
         .then((posts) => {
             posts = posts;
             console.log(posts)
-           
-            
 
-
-            // createUserProfileTemplate(posts, '62', "testo")
-            renderData(posts, userId, $("#posts-container"));
+            createUserProfileTemplate(posts, '2009', "fried milk")
+            // renderData(posts, userId, $("#posts-container"));
             $(".posts-loader").addClass("hidden")
         })
         .catch((error) => {

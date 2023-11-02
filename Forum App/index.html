@@ -15,9 +15,10 @@
     <script id = "posts" type = "text/x-handlebars-template">
         {{#each data}}
             {{#if post}}
-            <div class="post-item relative w-full shadow-md border rounded border-gray-200 mb-2 px-5 pb-1 pt-3 {{# if postOwner}} bg-blue-300 {{else}}  bg-cyan-50{{/if}} hover:border hover:border-black cursor-pointer transition break-words overflow-hidden" id="{{id}}">
+            <div class="post-item relative w-full shadow-md border rounded border-gray-200 mb-2 px-5 pb-1 pt-3 {{# if postOwner}} bg-blue-300 {{else}} bg-cyan-50{{/if}} hover:border hover:border-black cursor-pointer transition break-words overflow-hidden" id="{{id}}">
                 {{#if isPinned}}
-                    <i class="material-icons text-2xl z-10 absolute -top-0 -right-0 rotate-[30deg] text-red-600">push_pin</i>
+                    <!-- <i class="material-icons text-2xl z-10 absolute -top-0 -right-0 rotate-[30deg] text-red-600">push_pin</i> -->
+                    <img class = "z-10 absolute top-2 right-2 text-red-600" width="25" height="25" src="https://img.icons8.com/ios-filled/50/000000/pin--v1.png" alt="pin--v1"/>
                 {{/if}}
 
                 <div class = "p-2 border bg-[#E3F2F1] relative">
@@ -38,7 +39,7 @@
                 <button class="font-extralight text-sm hover:bg-gray-200 inline"> <i class="inline fa-regular fa-comments"></i> {{replyCount}} Comments</button>
 
                 {{#if (getUserState)}}
-                    <button class = "interact font-extralight text-sm hover:bg-gray-200"><i class="fa-regular fa-share-from-square"></i> Share </button>
+                    <!-- <button class = "interact font-extralight text-sm hover:bg-gray-200"><i class="fa-regular fa-share-from-square"></i> Share </button> -->
                     <button id = {{id}} class = "interact font-extralight text-sm hover:bg-gray-200" onclick="pinPost(this)"><i class="fa-regular fa-bookmark {{#if isPinned}} bg-blue-500{{/if}}"></i> Pin </button>
                 {{/if}}
             </div>
@@ -129,18 +130,28 @@
     </script>
 
     <script id = "userProfile" type = "text/x-handlebars-template">
-        <div class = "flex flex-row gap-4">
-            <div class = "w-96">
-                <div id = "userProfileFocusContainer" class = "max-w-md fixed left-[5%] top-[25%] postFocusContainer"></div>
+        
+
+        <div class = "w-full grid grid-cols-10 gap-0 px-10">
+            <div class = "col-span-4 w-full">
+                <div id = "userProfileFocusContainer" class = "max-w-lg left-[5%] top-[25%] postFocusContainer fixed"></div>
             </div>
-            <div>
-                <h1 class = "text-xl font-bold mb-4">Activity</h1>
-                <div class = "w-96">
-                    <div id = "userContentContainer" class = "posts-container flex flex-col gap-2 max-w-lg overflow-x-hidden h-full overflow-y-auto"></div> 
+                
+            <div class = "col-span-4 flex flex-col max-w-lg">
+                <div class = "mb-5 w-full flex flex-row gap-5 justify-around items-start">
+                    <button class = "text-xl font-bold">Activity</button>
+                    <button class = "text-xl font-bold">Posts</button>
+                    <button class = "text-xl font-bold">Comments</button>
+                    {{#if isMainUser}}
+                        <button class = "text-xl font-bold">Pins</button> 
+                    {{/if}}
                 </div>
+
+                <div id = "userContentContainer" class = "h-full overflow-x-hidden overflow-y-auto flex flex-col gap-2 posts-container"></div> 
             </div>
-            <div class = "flex flex-col">
-                <div class = "max-w-sm bg-white border border-gray-200 rounded-lg shadow px-4 py-4 relative">
+
+            <div class = "flex flex-col col-span-2 w-full gap-3">
+                <div class = "bg-white border border-gray-200 rounded-lg shadow px-4 py-4 relative">
                     {{#if isMainUser}}
                         <img class = "inline-block w-1/6 bg-zinc-100 border border-black rounded-full" src="https://media.tenor.com/BEBopBnhjVEAAAAi/peach-and-goma-peach-goma.gif" alt="">
                     {{else}}
@@ -155,6 +166,30 @@
                     </h1>
                     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam hic quaerat nihil porro nemo, debitis officiis quas consequatur ad illum.</p>
                     <button class="text-base float-right px-4 py-2 border rounded text-white bg-blue-500 hover:text-blue-500 hover:bg-white hover:border-blue-500 transition">Follow</button>
+                </div>
+                <div class = "text-center bg-white border border-gray-200 rounded-lg shadow px-4 py-4 relative">
+                    <q class = "bg-gray-300 px-3 py-1 rounded">I am cat</q>
+                </div>
+                <div class = "bg-white border border-gray-200 rounded-lg shadow px-4 py-4 relative gap-2">
+                    <p class = "font-semibold">Trophies</p>
+
+                    <div class = "flex flex-row items-center">
+                        <img width="40" height="40" src="https://img.icons8.com/bubbles/50/verified-account.png" alt="verified-account"/>
+                        <p>Verified</p>
+                    </div>
+
+                    <div class = "flex flex-row items-center">
+                        <img width="40" height="40" src="https://img.icons8.com/plasticine/100/grass.png" alt="grass"/>
+                        <p>Touch Grass</p>
+                    </div>
+
+                    <div class = "flex flex-row items-center">
+                        <img width="40" height="40" src="https://img.icons8.com/glyph-neue/64/cat-lying.png" alt="cat-lying"/>
+                        <p>Cat Club</p>
+                    </div>
+
+                    
+
                 </div>
             </div>
         </div>
@@ -191,10 +226,13 @@
         </div>
     </header>
 
-    <main class="flex flex-row gap-3 mt-40 justify-center items-start">
-        <div id="posts-container" class="posts-container flex flex-col gap-2 max-w-lg overflow-x-hidden h-full overflow-y-auto"></div>
-        <div class = "w-96">
-            <div id = "mainPostFocusContainer" class = "fixed max-h-64 max-w-[43%] postFocusContainer"></div>
+    <main class="flex flex-col w-full gap-3 mt-40 justify-center items-start">
+        <div class = "flex flex-row justify-center gap-2 w-full">
+            <div id="posts-container" class="posts-container flex flex-col gap-2 max-w-lg overflow-x-hidden h-full overflow-y-auto"></div>
+
+            <div class = "w-96">
+                <div id = "mainPostFocusContainer" class = "fixed max-h-64 max-w-[43%] postFocusContainer"></div>
+            </div>
         </div>
     </main>
       

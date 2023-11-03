@@ -5,31 +5,47 @@
 ---
 *ToDo*
 
+## To-Do List
+
+### User Profile
+- [x] Display user's posts and comments
+- [x] Show pinned posts and comments
+- [x] Improve user activity display
+- [x] Add 3 dot options on the profile box
+
+### Comment System
 - [ ] Implement comment pinning
-- [ ] Display user activity (posts/comments) in user profile
-- [ ] Display posts in user profile
-- [ ] Display comments in user profile
-- [ ] Display pinned posts/comments in user profile
-- [x] Implement real time updates from other users | server polling?
-- [ ] Improve code structure for code reusability
-- [ ] Fix and improve styling
-- [ ] Fix header
-- [ ] Fix max height for activities in sidebar drawer
-- [x] Bug: sidebar drawer cant be opened after clicking a user activity
-- [x] Deleting post from main page doesn't update posts array in userprofile page
-- [x] Creating post from main page doesn't update posts array in userprofile page
-- [x] Creating a post from the userprofile page causes some issues
-- [x] Bug: When focusing post on userprofile page it doesn't show as comment owner
-- [ ] Fix error message when user doesn't exist upon login
-- [x] Clicking sidebar from userprofile page doesn't work
-- [x] Implement pinning of posts
-- [x] Fix reply array when commenting on posts
-- [x] Close post focus after deleting a post
-- [x] Put op mark if reply is op of the post
-- [x] Don't display comment if it is empty
-- [x] Fix number of comments if a post has empty comments 
-- [x] Change post border if it is focused
-- [x] Pinning of posts in user profile page
-- [x] Change the layout in user profile page
-- [x] Close side drawer when escape key is hit
-- [ ] ~~Implement sharing~~
+- [x] Fix reply array rendering
+- [x] Handle empty comments
+- [x] Correct post comment count
+- [x] Identify OP (Original Poster) comments
+
+### UI/UX
+- [ ] Enhance styling
+- [x] Fix header display
+- [x] Set max height for sidebar activities
+- [x] Focus disappears after page updates
+- [x] Address long usernames
+- [x] Close post focus on deletion
+- [x] Consider changing post focus
+- [x] Fix deletePost loading
+
+### Functionality
+- [x] Enable real-time updates (consider server polling)
+- [x] Improve code structure for reusability
+- [x] Implement post pinning
+- [x] Handle user login errors
+- [x] Fix sidebar navigation
+- [x] Only re render if the new post/comment affects the user 
+- [ ] Recent posts box
+- [x] Fix focus re rendering bug
+
+### Miscellaneous
+- [x] Update user profile after post creation/deletion
+- [x] Handle user activity redirection
+- [x] Close side drawer with the "Escape" key
+- [x] Change button userlinks to a tags
+
+### Future Feature (Optional)
+~~- [ ] Implement sharing functionality~~
+

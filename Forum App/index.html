@@ -25,9 +25,9 @@
         {{#if data}}
         {{#each data}}
             {{#if post}}
-            <div class="post-item relative w-full shadow-md border rounded border-gray-200 mb-2 px-5 pb-1 pt-3 {{# if postOwner}} bg-blue-300 {{else}} bg-cyan-50{{/if}} hover:border hover:border-black cursor-pointer transition break-words overflow-hidden" id="{{id}}">
+            <div class="post-item relative w-full shadow-md border rounded {{#if isPinned}} border-red-500 {{else}} border-gray-200 {{/if}} mb-2 px-5 pb-1 pt-3 {{# if postOwner}} bg-blue-300 {{else}} bg-cyan-50{{/if}} hover:border hover:border-black cursor-pointer transition break-words overflow-hidden" id="{{id}}">
                 {{#if isPinned}}
-                    <img class = "z-10 absolute top-2 right-2 text-red-600" width="25" height="25" src="https://img.icons8.com/ios-filled/50/000000/pin--v1.png" alt="pin--v1"/>
+                    <i class="fa-solid fa-paw z-10 absolute top-1 right-2 text-2xl rotate-[30deg]"></i>
                 {{/if}}
 
                 <div class = "p-2 border bg-[#E3F2F1] relative w-full">
@@ -246,6 +246,34 @@
             {{/if}}
         </div>
     </script>
+
+
+    <script id = "recent-posts-template" type = "text/x-handlebars-template">
+        <div class = "py-3 px-4">
+            <h1 class = "font-semibold text-sm">Recent Posts</h1>
+            <div id = "" class = "flex flex-col gap-1 p-4 posts-container">
+                {{#each data}}
+                    <div class = "w-full border-b flex flex-row post-item bg-gray-100 overflow-x-hidden cursor-pointer hover:scale-105 transition-all" id = {{id}}>
+                        <img class ="w-[15%]" width="32" height="32" src="https://img.icons8.com/windows/32/multiline-text.png" alt="multiline-text"/>
+                        <div class = "flex flex-col justify-between">
+                            <div class = "w-[100%] h-[90%] flex items-center">
+                                <p class = "text-xs">{{post}}</p>
+                            </div>
+                            <div class = "flex flex-row gap-2">
+                                {{#if user}}
+                                    <h1 class = "text-xs font-semibold">{{user}}</h1>
+                                {{else}}
+                                    <h1 class = "text-xs font-semibold italic">Anon</h1>
+                                {{/if}}
+                                <p class = "text-xs"> {{replyCount}} Comments</p>
+                            </div>
+                        </div>
+                    </div>
+                {{/each}}
+            </div>
+            <button class = "text-sm font-semibold" onclick="clearRecentPosts()">Clear</button>
+        </div>
+    </script>
 </head>
 
 <body class = "bg-[#E3F2F1]">
@@ -281,8 +309,7 @@
         </div>
         
         <div class="w-[20%] flex flex-col gap-2">
-            <div class = "w-full h-24 bg-white p-4">
-                <h1>Recent Posts</h1>
+            <div id = "recent-posts-container" class = "w-full bg-white">
             </div>
 
             <div class="sticky top-20 w-full bg-white p-3 rounded text-base justify-around grid grid-cols-1 gap-4">
@@ -303,6 +330,18 @@
                     </div>
                 </div>
 
+                <div class = "flex flex-row items-center justify-around gap-2 mx-20">
+                    <a class = "hover:scale-105 transition" href="https://icons8.com" target="_blank">
+                        <img width="30" height="30" src="https://img.icons8.com/color/48/icons8-new-logo.png" alt="icons8-new-logo"/>
+                    </a>
+                    <a class = "hover:scale-105 transition" href="https://fontawesome.com/" target="_blank">
+                        <img width="32" height="32" src="https://img.icons8.com/windows/32/font-awesome.png" alt="font-awesome"/>
+                    </a>
+                    <a class = "hover:scale-105 transition" href="https://github.com/Kuugang/CSIT201-WebDev/tree/main/Forum%20App" target="_blank">
+                        <img width="28" height="28" src="https://img.icons8.com/glyph-neue/64/github.png" alt="github"/>
+                    </a>
+                </div>
+
                 <div class = "max-w-[280px] flex flex-row items-end justify-center bottom-5 left-3">
                     <p class = "text-sm font-semibold">Kuugang</p>
                     <img class = "w-[12%]" src="https://media.tenor.com/j_XffFNH-8gAAAAi/phone.gif" alt="">
@@ -316,9 +355,7 @@
 
     <button id = "backToTop" onclick = "backToTop()" class = "fixed hidden bottom-5 right-5 rounded-full bg-black text-white p-4 cursor-pointer z-10 transition-all"><i class="fa-solid fa-arrow-up" style = "animation: up 1.5s infinite;"></i> Back to top</button>
 
-    <footer>
-        
-    </footer>
+    
 
     <div id="drawer" class="fixed top-0 right-0 transform translate-x-full z-40 w-1/3 h-full transition-all duration-300 transform bg-white shadow-lg pl-4 pt-6 pb-1">
         <div class="h-full">

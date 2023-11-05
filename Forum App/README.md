@@ -36,7 +36,7 @@
 - [x] Handle user login errors
 - [x] Fix sidebar navigation
 - [x] Only re render if the new post/comment affects the user 
-- [ ] Recent posts box for users
+- [x] Recent posts box for users
 - [x] Fix focus re rendering bug
 
 ### Miscellaneous

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>CaTalk Forum</title>
     <link rel="icon" type="image/gif" href="https://media.tenor.com/Vy5sPxwNWxAAAAAi/sebusun-mocha.gif" />
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -212,10 +213,10 @@
         </div>
     </script> 
     <script id = "userComments" type = "text/x-handlebars-template">
-        <div class="relative flex flex-col mt-4">
+        <div class="relative flex flex-col">
             {{#if data}}
             {{#each data}}
-                <div id = "{{postParent}}" class="post-item relative p-2 text-sm mb-2 border-l border-black break-words {{#if replyOwner}} bg-blue-300 {{else}}bg-zinc-50{{/if}}">
+                <div id = "{{postParent}}" class="post-item relative p-2 text-sm border-l border-black break-words {{#if replyOwner}} bg-blue-300 {{else}}bg-zinc-50{{/if}}">
                     {{#if user}}
                         <div class = "flex flex-row items-center gap-1 items-end break-words">
                             <img class="w-[4%] bg-zinc-100 border border-black rounded-full inline" {{#if data.postOwner}} src = "https://media.tenor.com/BEBopBnhjVEAAAAi/peach-and-goma-peach-goma.gif" {{else}} src = "https://i.pinimg.com/originals/6f/65/78/6f65784caf4dd9f9932de464788dde43.jpg"{{/if}}>

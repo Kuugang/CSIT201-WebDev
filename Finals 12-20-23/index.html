@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="index.js"></script>
+    <style>
+        .progress {
+            width: 1px;
+            height: 20px;
+            background-color: blue;
+        }
+
+    </style>
+</head>
+
+<body>
+    <button id="add" class="border p-3">Add random task</button>
+    <button id="admit" class="border p-3">Admit Task</button>
+
+    <div>
+        <h1>Tasks Queue</h1>
+        <div id="tasks-q" class="flex flex-row gap-4 border h-[25px]">
+
+        </div>
+    </div>
+
+    <div class="border p-5">
+        <h1>High Priority Queue 1</h1>
+        <p>Queue List: </p>
+
+        <div id="high-list" class="flex flex-row gap-4 border h-[25px]">
+
+        </div>
+
+        <div class="p-container">
+            <div id="high" class="progress">
+
+            </div>
+        </div>
+    </div>
+
+    <div class="border p-5">
+        <h1>Regular Queue 2</h1>
+        <p>Queue List: </p>
+
+        <div id="q-2-list" class="flex flex-row gap-4 border h-[25px]">
+
+        </div>
+
+        <div class="p-container">
+            <div id="q-2" class="progress">
+
+            </div>
+        </div>
+    </div>
+
+    <div class="border p-5">
+        <h1>Regular Queue 3</h1>
+        <p>Queue List: </p>
+
+        <div id="q-3-list" class="flex flex-row gap-4 border h-[25px]">
+
+        </div>
+
+        <div class="p-container">
+            <div id="q-3" class="progress">
+
+            </div>
+        </div>
+    </div>
+
+    <div class="border p-5">
+        <h1>Regular Queue 4</h1>
+        <p>Queue List: </p>
+
+        <div id="q-4-list" class="flex flex-row gap-4 border h-[25px]">
+
+        </div>
+
+        <div class="p-container">
+            <div id="q-4" class="progress">
+
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

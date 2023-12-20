@@ -3,7 +3,7 @@ function renderTasks(tasks) {
     container.innerHTML = ""
     for (task of tasks) {
         let p = `
-            <p class = "${Boolean(task.high_p) === true ? 'text-red-500' : 'text-black'}">${task.timer}</p> 
+            <p class = "${Boolean(task.high_p) === true ? 'text-red-500 border-red-500' : ''} border border-black">${task.timer}</p> 
         `;
         container.innerHTML += p;
     }
@@ -11,22 +11,9 @@ function renderTasks(tasks) {
 
 function renderQueue(container, task) {
     let p = `
-            <p class = "${tasks.high_p ? 'text-red-500' : ''}">${task.timer}</p> 
+            <p class = "${tasks.high_p ? 'text-red-500' : ''} border border-black">${task.timer}</p> 
         `;
     container.innerHTML += p;
-}
-
-
-function remove(element, timer, queue) {
-    let i = 0;
-    while (i < timer) {
-        i++;
-    }
-
-    setTimeout(function () {
-        element.remove();
-        queue.splice(0, 1);
-    }, timer);
 }
 
 function getSum(tasks) {
@@ -39,10 +26,10 @@ function getSum(tasks) {
 
 document.addEventListener("DOMContentLoaded", function () {
     tasks = []
-    high_q = []
-    r_2 = []
-    r_3 = []
-    r_4 = []
+    high_q_1 = []
+    q_2 = []
+    q_3 = []
+    q_4 = []
 
     high_p_container = document.getElementById("high-list")
     q2_container = document.getElementById("q-2-list")
@@ -67,12 +54,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (tasks.length > 0) {
             const task = tasks[0];
             if (task.high_p) {
-                high_q.push(task);
+                high_q_1.push(task);
                 renderQueue(high_p_container, task);
             } else {
-                let sum2 = getSum(r_2);
-                let sum3 = getSum(r_3)
-                let sum4 = getSum(r_4);
+                let sum2 = getSum(q_2);
+                let sum3 = getSum(q_3)
+                let sum4 = getSum(q_4);
 
                 let sums = [sum2, sum3, sum4];
                 var min = Math.min.apply(Math, sums);
@@ -80,15 +67,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 switch (minIndex) {
                     case 0:
-                        r_2.push(task)
+                        q_2.push(task)
                         renderQueue(q2_container, task);
                         break;
                     case 1:
-                        r_3.push(task)
+                        q_3.push(task)
                         renderQueue(q3_container, task);
                         break;
                     case 2:
-                        r_4.push(task)
+                        q_4.push(task)
                         renderQueue(q4_container, task);
                         break;
                 }
@@ -100,62 +87,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const interval = 20;
 
-    setInterval(function () {
-        let div = document.getElementById("high")
-        if (high_q.length > 0) {
-            div.style.width = high_q[0].timer + 'px';
-            if(high_q[0].timer >= 1){
-                high_q[0].timer--;
-            }
-            if(high_q[0].timer == 0){
-                let p = high_p_container.querySelectorAll('p')[0]
-                p.remove();
-                high_q.splice(0, 1);
-            }
-        }
-    }, interval);
+    const progressIds= ["high", "q-2", "q-3", "q-4"]
+    const containers = [high_p_container, q2_container, q3_container, q4_container]
+    const queues = [high_q_1, q_2, q_3, q_4];
 
     setInterval(function () {
-        let div = document.getElementById("q-2")
-        if (r_2.length > 0) {
-            div.style.width = r_2[0].timer + 'px';
-            if(r_2[0].timer >= 1){
-                r_2[0].timer--;
-            }
-            if(r_2[0].timer == 0){
-                let p = q2_container.querySelectorAll('p')[0]
-                p.remove();
-                r_2.splice(0, 1);
-            }
-        }
-    }, interval);
-
-    setInterval(function () {
-        let div = document.getElementById("q-4")
-        if (r_4.length > 0) {
-            div.style.width = r_4[0].timer + 'px';
-            if(r_4[0].timer >= 1){
-                r_4[0].timer--;
-            }
-            if(r_4[0].timer == 0){
-                let p = q4_container.querySelectorAll('p')[0]
-                p.remove();
-                r_4.splice(0, 1);
-            }
-        }
-    }, interval);
-
-    setInterval(function () {
-        let div = document.getElementById("q-3")
-        if (r_3.length > 0) {
-            div.style.width = r_3[0].timer + 'px';
-            if(r_3[0].timer >= 1){
-                r_3[0].timer--;
-            }
-            if(r_3[0].timer == 0){
-                let p = q3_container.querySelectorAll('p')[0]
-                p.remove();
-                r_3.splice(0, 1);
+        let progressBar;
+        let queue;
+        for(let i = 0; i < progressIds.length; i++){
+            progressBar = document.getElementById(progressIds[i]);
+            queue = queues[i] 
+            if(queue.length > 0){
+                progressBar.style.width = queue[0].timer + 'px';
+                if(queue[0].timer >= 1)queue[0].timer--;
+                if(queue[0].timer == 1){
+                    let p = containers[i].querySelectorAll('p')[0]
+                    p.remove();
+                    queue.splice(0, 1);
+                }
             }
         }
     }, interval);
